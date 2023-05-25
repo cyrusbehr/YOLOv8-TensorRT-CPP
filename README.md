@@ -9,6 +9,8 @@ git clone --recursive
 
 ### Converting Model from Onnx
 
+pip3 install ultralytics
+
 Download the model from this repo: https://github.com/ultralytics/ultralytics#models
 
 Use the following python code to export the model to onnx:
