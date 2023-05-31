@@ -22,8 +22,8 @@ int main(int argc, char *argv[]) {
         std::cout << "Usage: " << argv[0] << " /path/to/your/image.jpg" << std::endl;
     }
 
-    const std::string inputImgPath = argv[1];
-    if (!doesFileExist(inputImgPath)) {
+    const std::string inputImage = argv[1];
+    if (!doesFileExist(inputImage)) {
         std::cout << "Error: The input file does not exist" << std::endl;
         return -1;
     }
@@ -61,6 +61,39 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
+    size_t batchSize = options.optBatchSize;
+
+    // Read the input image
+    auto cpuImg = cv::imread(inputImage);
+    if (cpuImg.empty()) {
+        std::cout << "Error: Unable to read image at path: " << inputImage << std::endl;
+        return -1;
+    }
+
+    // The model expects RGB input
+    cv::cvtColor(cpuImg, cpuImg, cv::COLOR_BGR2RGB);
+
+    // Upload to GPU memory
+    cv::cuda::GpuMat img;
+    img.upload(cpuImg);
+
+    // Populate the input vectors
+    const auto& inputDims = engine.getInputDims();
+    std::vector<std::vector<cv::cuda::GpuMat>> inputs;
+
+    for (const auto & inputDim : inputDims) {
+        std::vector<cv::cuda::GpuMat> input;
+        for (size_t j = 0; j < batchSize; ++j) {
+            // Resize to the model expected input size while maintaining the aspect ratio with the use of padding
+            if (inputDim.d[2] != inputDim.d[1]) {
+                std::cout << "Error: Resize method expected model with h=w"
+            }
+            auto resized = Engine::resizeKeepAspectRatioPadRightBottom(img, inputDim.d[2])
+            cv::cuda::resize(img, resized, cv::Size(inputDim.d[2], inputDim.d[1])); // TRT dims are (height, width) whereas OpenCV is (width, height)
+            input.emplace_back(std::move(resized));
+        }
+        inputs.emplace_back(std::move(input));
+    }
 
     return 0;
 }
