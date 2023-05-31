@@ -1,6 +1,11 @@
 # YOLOv8-TensorRT-CPP
 YOLOv8 TensorRT C++ Implementation
 
+### Prereqs
+- Install cuda
+- Install TRT, and explain where in the code to set TRT dir
+- Install OpenCV with CUDA support, which can be done here. 
+
 ### Installation
 
 git clone --recursive
@@ -13,11 +18,6 @@ pip3 install ultralytics
 
 Download the model from this repo: https://github.com/ultralytics/ultralytics#models
 
-Use the following python code to export the model to onnx:
+Use the script in /scripts to convert your model. 
 
-```python
-from ultralytics import YOLO
-
-model = YOLO("yolov8m.pt") 
-model.export(format="onnx", imgsz=[640,640])
-```
+- Then change the model name. 
