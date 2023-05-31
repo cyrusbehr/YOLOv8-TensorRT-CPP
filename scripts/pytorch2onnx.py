@@ -1,4 +1,6 @@
 from ultralytics import YOLO
 
-model = YOLO("../models/yolov8x.pt") 
-model.export(format="onnx", imgsz=[640,640])
+model = YOLO("../models/yolov8s.pt")
+model.fuse()
+model.info(verbose=False)  # Print model information
+model.export(format="onnx", opset=12)
