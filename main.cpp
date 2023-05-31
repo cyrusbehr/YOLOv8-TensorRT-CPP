@@ -42,7 +42,7 @@ int main(int argc, char *argv[]) {
     Engine engine(options);
 
     // Specify the model we want to load
-    const std::string onnxModelPath = "../models/yolov8x.onnx";
+    const std::string onnxModelPath = "../models/yolov8m.onnx";
 
     // Build the onnx model into a TensorRT engine file
     // If the engine file already exists, this function will return immediately
@@ -85,15 +85,48 @@ int main(int argc, char *argv[]) {
         std::vector<cv::cuda::GpuMat> input;
         for (size_t j = 0; j < batchSize; ++j) {
             // Resize to the model expected input size while maintaining the aspect ratio with the use of padding
-            if (inputDim.d[2] != inputDim.d[1]) {
-                std::cout << "Error: Resize method expected model with h=w"
-            }
-            auto resized = Engine::resizeKeepAspectRatioPadRightBottom(img, inputDim.d[2])
-            cv::cuda::resize(img, resized, cv::Size(inputDim.d[2], inputDim.d[1])); // TRT dims are (height, width) whereas OpenCV is (width, height)
+            auto resized = Engine::resizeKeepAspectRatioPadRightBottom(img, inputDim.d[1], inputDim.d[2]);
             input.emplace_back(std::move(resized));
         }
         inputs.emplace_back(std::move(input));
     }
+
+    // Define our preprocessing code
+    // YoloV8 model expects values between [0.f, 1.f] so we use the following params
+    std::array<float, 3> subVals {0.f, 0.f, 0.f};
+    std::array<float, 3> divVals {1.f, 1.f, 1.f};
+    bool normalize = true;
+
+    // Run inference 10 times to warm up the engine
+    for (int i = 0; i < 10; ++i) {
+        std::vector<std::vector<std::vector<float>>> featureVectors;
+        succ = engine.runInference(inputs, featureVectors, subVals, divVals, normalize);
+        if (!succ) {
+            std::cout << "Error: Unable to run inference" << std::endl;
+            return -1;
+        }
+    }
+
+    // Now run the benchmark
+    auto t1 = Clock::now();
+    size_t numIts = 100;
+    for (size_t i = 0; i < numIts; ++i) {
+        std::vector<std::vector<std::vector<float>>> featureVectors;
+        succ = engine.runInference(inputs, featureVectors, subVals, divVals, normalize);
+        if (!succ) {
+            std::cout << "Error: Unable to run inference" << std::endl;
+            return -1;
+        }
+
+        // TODO Cyrus: Include post processing here, and include it in the benchmark
+    }
+    auto t2 = Clock::now();
+    double totalTime = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+
+    std::cout << "Average time per inference: " << totalTime / numIts / static_cast<float>(inputs[0].size()) <<
+              " ms, for batch size of: " << inputs[0].size() << std::endl;
+
+
 
     return 0;
 }
