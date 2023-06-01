@@ -13,12 +13,18 @@ find_package(OpenCV REQUIRED)
 # TODO: Specify the path to TensorRT root dir
 set(TensorRT_DIR /home/cyrus/work/libs/TensorRT-8.2.1.8/)
 
+# Build the TensorRT inference engine library
+# TensorRT is found and linked by the tensorrt-cpp-api
 add_subdirectory(libs/tensorrt-cpp-api)
 
-add_executable(YOLOv8_TensorRT_CPP
-        src/main.cpp
-        src/yolov8.cpp)
+# Build the YoloV8 library
+add_library(YoloV8_TRT SHARED src/yolov8.cpp)
+target_link_libraries(YoloV8_TRT PUBLIC tensorrt_cpp_api ${OpenCV_LIBS})
+target_include_directories(YoloV8_TRT PUBLIC libs/tensorrt-cpp-api/src)
 
-target_link_libraries(YOLOv8_TensorRT_CPP tensorrt_cpp_api ${OpenCV_LIBS})
-target_include_directories(YOLOv8_TensorRT_CPP PUBLIC libs/tensorrt-cpp-api/src)
+# Build and link the executables
+add_executable(detect_object_image src/object_detection_image.cpp)
+target_link_libraries(detect_object_image YoloV8_TRT)
 
+add_executable(benchmark src/benchmark.cpp)
+target_link_libraries(benchmark YoloV8_TRT)

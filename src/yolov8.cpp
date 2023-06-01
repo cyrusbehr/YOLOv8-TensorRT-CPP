@@ -1,9 +1,5 @@
-#include <chrono>
 #include <opencv2/cudaimgproc.hpp>
-
 #include "yolov8.h"
-
-typedef std::chrono::high_resolution_clock Clock;
 
 YoloV8::YoloV8(const std::string &onnxModelPath, const float probabilityThreshold, const float nmsThreshold, const int topK)
         : PROBABILITY_THRESHOLD(probabilityThreshold)

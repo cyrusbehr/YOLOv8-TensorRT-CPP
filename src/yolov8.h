@@ -25,9 +25,6 @@ public:
     // Detect the objects in the image
     std::vector<Object> detectObjects(const cv::Mat& inputImgBGR);
 
-    // Benchmark the preprocessing, inference, and post processing steps for the provided image
-    void benchmark(const cv::Mat& inputImageBGR);
-
     // Draw the object bounding boxes and labels on the image
     void drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects, unsigned int scale = 2);
 private:
