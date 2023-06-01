@@ -28,3 +28,6 @@ target_link_libraries(detect_object_image YoloV8_TRT)
 
 add_executable(benchmark src/benchmark.cpp)
 target_link_libraries(benchmark YoloV8_TRT)
+
+add_executable(detect_object_video src/object_detection_video_stream.cpp)
+target_link_libraries(detect_object_video YoloV8_TRT)

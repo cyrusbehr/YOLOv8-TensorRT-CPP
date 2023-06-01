@@ -1,6 +1,6 @@
 #include "yolov8.h"
 
-// Runs object detection on an input image then saves the annotated image to disk.
+// Runs object detection on video stream then displays annotated results.
 
 int main(int argc, char *argv[]) {
     // Parse the command line arguments
@@ -23,34 +23,40 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    // Ensure the image exists on disk
-    const std::string inputImage = argv[2];
-    if (!doesFileExist(inputImage)) {
-        std::cout << "Error: Unable to find file at path: " << inputImage << std::endl;
-        return -1;
-    }
-
     // Create our YoloV8 engine
     // Use default probability threshold, nms threshold, and top k
     YoloV8 yoloV8(onnxModelPath);
 
-    // Read the input image
-    auto img = cv::imread(inputImage);
-    if (img.empty()) {
-        std::cout << "Error: Unable to read image at path: " << inputImage << std::endl;
-        return -1;
+    // Initialize the video stream
+    cv::VideoCapture cap;
+    // TODO: Replace this with your video source.
+    // 0 is default webcam, but can replace with string such as "/dev/video0", or an RTSP stream URL
+    cap.open(0);
+
+    if (!cap.isOpened()) {
+        throw std::runtime_error("Unable to open video capture!");
     }
 
-    // Run inference
-    const auto objects = yoloV8.detectObjects(img);
+    while (true) {
+        // Grab frame
+        cv::Mat img;
+        cap >> img;
 
-    // Draw the bounding boxes on the image
-    yoloV8.drawObjectLabels(img, objects);
+        if (img.empty()) {
+            throw std::runtime_error("Unable to decode image from video stream.");
+        }
 
-    // Save the image to disk
-    const auto outputName = inputImage.substr(0, inputImage.find_last_of('.')) + "_annotated.jpg";
-    cv::imwrite(outputName, img);
-    std::cout << "Saved annotated image to: " << outputName << std::endl;
+        // Run inference
+        const auto objects = yoloV8.detectObjects(img);
 
+        // Draw the bounding boxes on the image
+        yoloV8.drawObjectLabels(img, objects);
+
+        // Display the results
+        cv::imshow("Object Detection", img);
+        if (cv::waitKey(1) >= 0) {
+            break;
+        }
+    }
     return 0;
 }
