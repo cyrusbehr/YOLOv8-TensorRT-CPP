@@ -1,3 +1,31 @@
+[![Stargazers][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![LinkedIn][linkedin-shield]][linkedin-url]
+
+<!-- PROJECT LOGO -->
+<br />
+<p align="center">
+  <a href="https://github.com/cyrusbehr/tensorrt-cpp-api">
+    <img width="40%" src="images/logo.png" alt="logo">
+  </a>
+
+<h3 align="center">TensorRT C++ API Tutorial</h3>
+
+  <p align="center">
+    <b>
+    How to use TensorRT C++ API for high performance GPU machine-learning inference.
+    </b>
+    <br />
+    Supports models with single / multiple inputs and single / multiple outputs with batching.
+    <br />
+    <br />
+    <a href="https://www.youtube.com/watch?v=kPJ9uDduxOs">Project Overview Video</a>
+    .
+    <a href="https://youtu.be/Z0n5aLmcRHQ">Code Deep-Dive Video</a>
+  </p>
+</p>
+
+
 # YOLOv8-TensorRT-CPP
 YOLOv8 TensorRT C++ Implementation
 
@@ -21,3 +49,13 @@ Download the model from this repo: https://github.com/ultralytics/ultralytics#mo
 Use the script in /scripts to convert your model. 
 
 - Then change the model name. 
+
+
+<!-- MARKDOWN LINKS & IMAGES -->
+<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
+[stars-shield]: https://img.shields.io/github/stars/cyrusbehr/YOLOv8-TensorRT-CPP.svg?style=flat-square
+[stars-url]: https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP/stargazers
+[issues-shield]: https://img.shields.io/github/issues/cyrusbehr/YOLOv8-TensorRT-CPP.svg?style=flat-square
+[issues-url]: https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP/issues
+[linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
+[linkedin-url]: https://linkedin.com/in/cyrus-behroozi/
