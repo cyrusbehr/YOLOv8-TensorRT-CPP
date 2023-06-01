@@ -66,7 +66,7 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    std::cout << "Benchmarking network with image of size: (" << img.rows << ", " << img.cols << ")" << std::endl;
+    std::cout << "Benchmarking network with image of size: (" << img.cols << ", " << img.rows << ")" << std::endl;
 
     // Warm up the network
     std::cout << "Warming up the network..." << std::endl;

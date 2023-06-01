@@ -4,16 +4,16 @@
 
 int main(int argc, char *argv[]) {
     // Parse the command line arguments
-    // Must pass the model path and image path as a command line argument to the executable
-    if (argc < 3) {
-        std::cout << "Error: Must specify the model and input image" << std::endl;
-        std::cout << "Usage: " << argv[0] << "/path/to/onnx/model.onnx /path/to/your/image.jpg" << std::endl;
+    // Must pass the model path as a command line argument to the executable
+    if (argc < 2) {
+        std::cout << "Error: Must specify the model path" << std::endl;
+        std::cout << "Usage: " << argv[0] << "/path/to/onnx/model.onnx" << std::endl;
         return -1;
     }
 
-    if (argc > 4) {
+    if (argc > 3) {
         std::cout << "Error: Too many arguments provided" << std::endl;
-        std::cout << "Usage: " << argv[0] << "/path/to/onnx/model.onnx /path/to/your/image.jpg" << std::endl;
+        std::cout << "Usage: " << argv[0] << "/path/to/onnx/model.onnx" << std::endl;
     }
 
     // Ensure the onnx model exists
@@ -32,6 +32,16 @@ int main(int argc, char *argv[]) {
     // TODO: Replace this with your video source.
     // 0 is default webcam, but can replace with string such as "/dev/video0", or an RTSP stream URL
     cap.open(0);
+
+    // Try to use HD resolution (or closest resolution
+    auto resW = cap.get(cv::CAP_PROP_FRAME_WIDTH);
+    auto resH = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+    std::cout << "Original video resolution: (" << resW << "x" << resH << ")" << std::endl;
+    cap.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
+    cap.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
+    resW = cap.get(cv::CAP_PROP_FRAME_WIDTH);
+    resH = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
+    std::cout << "New video resolution: (" << resW << "x" << resH << ")" << std::endl;
 
     if (!cap.isOpened()) {
         throw std::runtime_error("Unable to open video capture!");
