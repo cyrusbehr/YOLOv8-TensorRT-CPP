@@ -62,7 +62,7 @@ std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::Mat &inp
 
     // These params will be used in the post-processing stage
     m_imgHeight = gpuImg.rows;
-    m_imgHeight = gpuImg.cols;
+    m_imgWidth = gpuImg.cols;
     m_ratio =  1.f / std::min(inputDims[0].d[2] / static_cast<float>(gpuImg.cols), inputDims[0].d[1] / static_cast<float>(gpuImg.rows));
 
     return inputs;

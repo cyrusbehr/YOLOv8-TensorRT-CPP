@@ -45,8 +45,6 @@ int main(int argc, char *argv[]) {
     // Run inference
     const auto objects = yoloV8.detectObjects(img);
 
-    std::cout << objects.size() << std::endl;
-
     // Draw the bounding boxes on the image
     yoloV8.drawObjectLabels(img, objects);
 
