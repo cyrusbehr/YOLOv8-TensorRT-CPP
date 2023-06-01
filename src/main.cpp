@@ -1,11 +1,4 @@
-#include <fstream>
 #include "yolov8.h"
-
-// Utility method for checking if a file exists on disk
-inline bool doesFileExist (const std::string& name) {
-    std::ifstream f(name.c_str());
-    return f.good();
-}
 
 int main(int argc, char *argv[]) {
     // Parse the command line arguments
@@ -29,7 +22,7 @@ int main(int argc, char *argv[]) {
     }
 
     // TODO: Specify the model we want to load
-    const std::string onnxModelPath = "../models/yolov8x.onnx";
+    const std::string onnxModelPath = "../models/yolov8m.onnx";
 
     // Create our YoloV8 engine
     // Use default probability threshold, nms threshold, and top k

@@ -1,5 +1,12 @@
 #pragma once
 #include "engine.h"
+#include <fstream>
+
+// Utility method for checking if a file exists on disk
+inline bool doesFileExist (const std::string& name) {
+    std::ifstream f(name.c_str());
+    return f.good();
+}
 
 struct Object {
     // The object class.
