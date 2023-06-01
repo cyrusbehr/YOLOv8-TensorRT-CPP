@@ -15,7 +15,9 @@ set(TensorRT_DIR /home/cyrus/work/libs/TensorRT-8.2.1.8/)
 
 add_subdirectory(libs/tensorrt-cpp-api)
 
-add_executable(YOLOv8_TensorRT_CPP main.cpp)
+add_executable(YOLOv8_TensorRT_CPP
+        src/main.cpp
+        src/yolov8.cpp)
 
 target_link_libraries(YOLOv8_TensorRT_CPP tensorrt_cpp_api ${OpenCV_LIBS})
 target_include_directories(YOLOv8_TensorRT_CPP PUBLIC libs/tensorrt-cpp-api/src)
