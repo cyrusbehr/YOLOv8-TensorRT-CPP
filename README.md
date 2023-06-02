@@ -27,7 +27,7 @@
 
 ### Getting Started
 This project demonstrates how to use the TensorRT C++ API to run GPU inference for the YoloV8. 
-It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr/tensorrt-cpp-api) to run inference behind the scenes, so make sure you are familiar with that project.
+It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr/tensorrt-cpp-api) to run inference behind the scene, so make sure you are familiar with that project.
 
 ### Prerequisites
 - Install CUDA, instructions [here](https://developer.nvidia.com/cuda-11.2.0-download-archive).
@@ -44,10 +44,8 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 
 
 ### Installation
-
-git clone --recursive
-
-* Important to use recursive as we use submodules! 
+- `git clone https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP --recursive`
+- **Be sure to use the `--recursive` flag as this repo makes use of git submodules.** 
 
 ### Converting Model from Onnx
 
