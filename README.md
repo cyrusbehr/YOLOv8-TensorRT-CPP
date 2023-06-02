@@ -6,7 +6,10 @@
 <br />
 <p align="center">
   <a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP">
-    <img width="95%" src="assets/yolov8.png" alt="logo">
+    <img width="50%" src="assets/yolov8.gif" alt="logo">
+  </a>
+  <a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP">
+    <img width="50%" src="assets/yolov8.png" alt="logo">
   </a>
   <h3 align="center">YoloV8 TensorRT CPP</h3>
   <p align="center">
