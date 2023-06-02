@@ -26,7 +26,7 @@
 </p>
 
 ### Getting Started
-This project demonstrates how to use the TensorRT C++ API to run GPU inference for the YoloV8. 
+This project demonstrates how to use the TensorRT C++ API to run GPU inference for YoloV8. 
 It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr/tensorrt-cpp-api) to run inference behind the scene, so make sure you are familiar with that project.
 
 ### Prerequisites
