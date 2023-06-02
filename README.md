@@ -4,11 +4,17 @@
 
 <!-- PROJECT LOGO -->
 <br />
+  <h3 align="center">YoloV8 TensorRT CPP</h3>
+  <p align="center">
+    <b>
+    A C++ Implementation of YoloV8 using TensorRT
+    </b>
+</p>
+
 <p align="center">
   <a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP">
     <img width="70%" src="assets/yolov8.gif" alt="logo">
   </a>
-  <h3 align="center">YoloV8 TensorRT CPP</h3>
 </p>
 
 
