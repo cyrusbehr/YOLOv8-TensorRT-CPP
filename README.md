@@ -70,7 +70,7 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
   - The video source can be an int or a string (ex. "/dev/video4" or an RTSP url).
 
 ### How to debug
-- If you have issues creating the TensorRT engine file from the onnx model, navigate to `libs/tensorrt-cpp-api/engine.cpp` and change the verbosity level by changing the severity level to `kVERBOSE` and rebuild and rerun. This should give you more information on where exactly the build process is failing.
+- If you have issues creating the TensorRT engine file from the onnx model, navigate to `libs/tensorrt-cpp-api/src/engine.cpp` and change the log level by changing the severity level to `kVERBOSE` and rebuild and rerun. This should give you more information on where exactly the build process is failing.
 
 ### Show your appreciation
 If this project was helpful to you, I would appreicate if you could give it a star. That will encourage me to ensure it's up to date and solve issues quickly.
