@@ -30,6 +30,7 @@ This project demonstrates how to use the TensorRT C++ API to run GPU inference f
 It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr/tensorrt-cpp-api) to run inference behind the scene, so make sure you are familiar with that project.
 
 ### Prerequisites
+- Tested and working on Ubuntu 20.04
 - Install CUDA, instructions [here](https://developer.nvidia.com/cuda-11.2.0-download-archive).
     - Recommended >= 11.2
 - Install cudnn, instructions [here](https://docs.nvidia.com/deeplearning/cudnn/install-guide/index.html#download).
