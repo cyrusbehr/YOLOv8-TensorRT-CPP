@@ -25,14 +25,23 @@
   </p>
 </p>
 
+### Getting Started
+This project demonstrates how to use the TensorRT C++ API to run GPU inference for the YoloV8. 
+It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr/tensorrt-cpp-api) to run inference behind the scenes, so make sure you are familiar with that project.
 
-# YOLOv8-TensorRT-CPP
-YOLOv8 TensorRT C++ Implementation
+### Prerequisites
+- Install CUDA, instructions [here](https://developer.nvidia.com/cuda-11.2.0-download-archive).
+    - Recommended >= 11.2
+- Install cudnn, instructions [here](https://docs.nvidia.com/deeplearning/cudnn/install-guide/index.html#download).
+    - Recommended >= 8
+- `sudo apt install build-essential`
+- `sudo apt install python3-pip`
+- `pip3 install cmake`
+- Install OpenCV with cuda support. Instructions can be found [here](https://gist.github.com/raulqf/f42c718a658cddc16f9df07ecc627be7).
+- Download TensorRT 8 from [here](https://developer.nvidia.com/nvidia-tensorrt-8x-download).
+    - Recommended >= 8.2
+- Extract, and then navigate to the `CMakeLists.txt` file and replace the `TODO` with the path to your TensorRT installation.
 
-### Prereqs
-- Install cuda
-- Install TRT, and explain where in the code to set TRT dir
-- Install OpenCV with CUDA support, which can be done here. 
 
 ### Installation
 
