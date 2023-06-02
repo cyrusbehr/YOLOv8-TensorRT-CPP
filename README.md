@@ -45,18 +45,15 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 
 ### Installation
 - `git clone https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP --recursive`
-- **Be sure to use the `--recursive` flag as this repo makes use of git submodules.** 
+- **Note:** Be sure to use the `--recursive` flag as this repo makes use of git submodules. 
 
-### Converting Model from Onnx
+### Converting Model from PyTorch to ONNX
 
-pip3 install ultralytics
-
-Download the model from this repo: https://github.com/ultralytics/ultralytics#models
-
-Use the script in /scripts to convert your model. 
-
-- Then change the model name. 
-
+- Navigate to the [official YoloV8 repository](https://github.com/ultralytics/ultralytics) and download your desired version of the model (ex. YOLOv8m).
+- `pip3 install ultralytics`
+- Navigate to `YOLOv8-TensorRT-CPP/scripts` and modify this line so that it points to your downloaded model: `model = YOLO("../models/yolov8m.pt")`.
+- `python3 pytorch2onnx.py`
+- After running this command, you should successfully have converted from PyTorch to ONNX. 
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
