@@ -5,23 +5,21 @@
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/cyrusbehr/tensorrt-cpp-api">
-    <img width="40%" src="images/logo.png" alt="logo">
+  <a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP">
+    <img width="80%" src="assets/yolov8.png" alt="logo">
   </a>
-
-<h3 align="center">TensorRT C++ API Tutorial</h3>
-
+  <h3 align="center">YoloV8 TensorRT CPP</h3>
   <p align="center">
     <b>
-    How to use TensorRT C++ API for high performance GPU machine-learning inference.
+    A C++ Implementation of YoloV8 using TensorRT
     </b>
-    <br />
-    Supports models with single / multiple inputs and single / multiple outputs with batching.
-    <br />
-    <br />
-    <a href="https://www.youtube.com/watch?v=kPJ9uDduxOs">Project Overview Video</a>
-    .
-    <a href="https://youtu.be/Z0n5aLmcRHQ">Code Deep-Dive Video</a>
+[//]: # (    <br />)
+[//]: # (    Supports models with single / multiple inputs and single / multiple outputs with batching.)
+[//]: # (    <br />)
+[//]: # (    <br />)
+[//]: # (    <a href="https://www.youtube.com/watch?v=kPJ9uDduxOs">Project Overview Video</a>)
+[//]: # (    .)
+[//]: # (    <a href="https://youtu.be/Z0n5aLmcRHQ">Check of </a>)
   </p>
 </p>
 
