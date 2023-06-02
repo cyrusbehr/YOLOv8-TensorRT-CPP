@@ -2,15 +2,17 @@
 [![Issues][issues-shield]][issues-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
-<p style="text-align:center;">
-  <a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP">
-    <img width="70%" src="assets/yolov8.gif" alt="logo">
-  </a>
-  <h3 style="text-align:center;">YoloV8 TensorRT CPP</h3>
-  <p style="text-align:center;">
+<br />
+<p align="center">
+  <h3 align="center">YoloV8 TensorRT CPP</h3>
+  <p align="center">
     <b>
     A C++ Implementation of YoloV8 using TensorRT
     </b>
+  </p>
+  <a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP">
+    <img width="70%" src="assets/yolov8.gif" alt="logo">
+  </a>
 </p>
 
 ### Getting Started
