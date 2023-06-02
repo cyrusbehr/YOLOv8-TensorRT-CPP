@@ -2,27 +2,15 @@
 [![Issues][issues-shield]][issues-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
 
-<!-- PROJECT LOGO -->
-<br />
-<p align="center">
+<p style="text-align:center;">
   <a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP">
     <img width="70%" src="assets/yolov8.gif" alt="logo">
   </a>
-  <h3 align="center">YoloV8 TensorRT CPP</h3>
-  <p align="center">
+  <h3 style="text-align:center;">YoloV8 TensorRT CPP</h3>
+  <p style="text-align:center;">
     <b>
     A C++ Implementation of YoloV8 using TensorRT
     </b>
-
-[//]: # (    <br />)
-[//]: # (    Supports models with single / multiple inputs and single / multiple outputs with batching.)
-[//]: # (    <br />)
-[//]: # (    <br />)
-[//]: # (    <a href="https://www.youtube.com/watch?v=kPJ9uDduxOs">Project Overview Video</a>)
-[//]: # (    .)
-[//]: # (    <a href="https://youtu.be/Z0n5aLmcRHQ">Check of </a>)
-
-  </p>
 </p>
 
 ### Getting Started
