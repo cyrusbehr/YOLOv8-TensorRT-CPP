@@ -4,15 +4,16 @@
 
 <!-- PROJECT LOGO -->
 <br />
+  <h3 align="center">YoloV8 TensorRT CPP</h3>
 <p align="center">
   <a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP">
-    <img width="80%" src="assets/yolov8.png" alt="logo">
+    <img width="95%" src="assets/yolov8.png" alt="logo">
   </a>
-  <h3 align="center">YoloV8 TensorRT CPP</h3>
   <p align="center">
     <b>
     A C++ Implementation of YoloV8 using TensorRT
     </b>
+
 [//]: # (    <br />)
 [//]: # (    Supports models with single / multiple inputs and single / multiple outputs with batching.)
 [//]: # (    <br />)
@@ -20,6 +21,7 @@
 [//]: # (    <a href="https://www.youtube.com/watch?v=kPJ9uDduxOs">Project Overview Video</a>)
 [//]: # (    .)
 [//]: # (    <a href="https://youtu.be/Z0n5aLmcRHQ">Check of </a>)
+
   </p>
 </p>
 
