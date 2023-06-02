@@ -48,12 +48,26 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 - **Note:** Be sure to use the `--recursive` flag as this repo makes use of git submodules. 
 
 ### Converting Model from PyTorch to ONNX
-
 - Navigate to the [official YoloV8 repository](https://github.com/ultralytics/ultralytics) and download your desired version of the model (ex. YOLOv8m).
 - `pip3 install ultralytics`
 - Navigate to `YOLOv8-TensorRT-CPP/scripts` and modify this line so that it points to your downloaded model: `model = YOLO("../models/yolov8m.pt")`.
 - `python3 pytorch2onnx.py`
 - After running this command, you should successfully have converted from PyTorch to ONNX. 
+
+### Building the Project
+- `mkdir build`
+- `cd build`
+- `cmake ..`
+- `make -j`
+
+### Running the Executables
+- *Note*: the first time you run any of the scripts, it may take quite a long time (5 mins+) as TensorRT must generate an optimized TensorRT engine file from the onnx model. This is then saved to disk and loaded on subsequent runs.
+- To run the benchmarking script, run: `./benchmark /path/to/your/onnx/model.onnx`
+- To run inference on an image and save the annotated image to disk run: `./detect_object_image /path/to/your/onnx/model.onnx /path/to/your/image.jpg`
+  - You can use the images in the `YOLOv8-TensorRT-CPP/images` for testing
+- To run inference using your webcam and display the results in real time, run: `./detect_object_video /path/to/your/onnx/model.onnx`
+  - To change the video source, navigate to `YOLOv8-TensorRT-CPP/src/object_detection_video_streaming.cpp` and change this line to your specific video source: ` cap.open(0);`.
+  - The video source can be an int or a string (ex. "/dev/video4" or an RTSP url).
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
