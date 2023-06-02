@@ -14,6 +14,8 @@
     A C++ Implementation of YoloV8 using TensorRT
     </b>
 </p>
+</p>
+
 
 ### Getting Started
 This project demonstrates how to use the TensorRT C++ API to run GPU inference for YoloV8. 
