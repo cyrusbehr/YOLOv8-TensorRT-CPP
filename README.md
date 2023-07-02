@@ -23,16 +23,18 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 
 ### Prerequisites
 - Tested and working on Ubuntu 20.04
-- Install CUDA, instructions [here](https://developer.nvidia.com/cuda-11.2.0-download-archive).
-    - Recommended >= 11.2
+- Install CUDA, instructions [here](https://developer.nvidia.com/cuda-11-8-0-download-archive).
+  - Recommended >= 11.8 
 - Install cudnn, instructions [here](https://docs.nvidia.com/deeplearning/cudnn/install-guide/index.html#download).
-    - Recommended >= 8
+  - Recommended >= 8
 - `sudo apt install build-essential`
 - `sudo apt install python3-pip`
 - `pip3 install cmake`
-- Install OpenCV with cuda support. Instructions can be found [here](https://gist.github.com/raulqf/f42c718a658cddc16f9df07ecc627be7).
+- Install OpenCV with cuda support. To compile OpenCV from source, run the `build_opencv.sh` script provided in `./scripts/`
+  - Recommended >= 4.8
 - Download TensorRT 8 from [here](https://developer.nvidia.com/nvidia-tensorrt-8x-download).
-    - Recommended >= 8.2
+  - Recommended >= 8.6
+  - Required >= 8.0
 - Extract, and then navigate to the `CMakeLists.txt` file and replace the `TODO` with the path to your TensorRT installation.
 
 
