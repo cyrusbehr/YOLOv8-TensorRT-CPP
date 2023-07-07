@@ -248,7 +248,7 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
                     cv::Size(static_cast<int>(m_imgWidth), static_cast<int>(m_imgHeight)),
                     cv::INTER_LINEAR
             );
-            objs[i].boxMask = mask(objs[i].rect) > 0.5f; // TODO Cyrus: Change to 0.5
+            objs[i].boxMask = mask(objs[i].rect) > 0.5f;
         }
     }
 
@@ -326,12 +326,22 @@ std::vector<Object> YoloV8::postprocess(std::vector<float> &featureVector) {
 }
 
 void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects, unsigned int scale) {
-    cv::Mat mask;
+    // If segmentation information is present, start with that
     if (!objects.empty() && !objects[0].boxMask.empty()) {
-        // Contains segmentation info
-        mask = image.clone();
+        cv::Mat mask = image.clone();
+        for (const auto& object: objects) {
+            // Choose the color
+            cv::Scalar color = cv::Scalar(COLOR_LIST[object.label][0], COLOR_LIST[object.label][1],
+                                          COLOR_LIST[object.label][2]);
+
+            // Add the mask for said object
+            mask(object.rect).setTo(color * 255, object.boxMask);
+        }
+        // Add all the masks to our image
+        cv::addWeighted(image, 0.5, mask, 0.8, 1, image);
     }
 
+    // Bounding boxes and annotations
     for (auto & object : objects) {
         // Choose the color
         cv::Scalar color = cv::Scalar(COLOR_LIST[object.label][0], COLOR_LIST[object.label][1],
@@ -364,12 +374,5 @@ void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects
                       txt_bk_color, -1);
 
         cv::putText(image, text, cv::Point(x, y + labelSize.height), cv::FONT_HERSHEY_SIMPLEX, 0.35 * scale, txtColor, scale);
-
-        // Segmentation
-        if (!object.boxMask.empty()) {
-            mask(object.rect).setTo(color * 255, object.boxMask);
-        }
     }
-
-    cv::addWeighted(image, 0.5, mask, 0.8, 1, image);
 }
