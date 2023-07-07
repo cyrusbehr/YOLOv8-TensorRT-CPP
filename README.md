@@ -21,6 +21,8 @@
 This project demonstrates how to use the TensorRT C++ API to run GPU inference for YoloV8. 
 It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr/tensorrt-cpp-api) to run inference behind the scene, so make sure you are familiar with that project.
 
+**New**: Now supports YoloV8 Semantic Segmentation models. 
+
 ### Prerequisites
 - Tested and working on Ubuntu 20.04
 - Install CUDA, instructions [here](https://developer.nvidia.com/cuda-11-8-0-download-archive).
@@ -44,6 +46,7 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 
 ### Converting Model from PyTorch to ONNX
 - Navigate to the [official YoloV8 repository](https://github.com/ultralytics/ultralytics) and download your desired version of the model (ex. YOLOv8m).
+  - The code also supports semantic segmentation models out of the box (ex. YOLOv8x-seg)
 - `pip3 install ultralytics`
 - Navigate to the `scripts/` directory and modify this line so that it points to your downloaded model: `model = YOLO("../models/yolov8m.pt")`.
 - `python3 pytorch2onnx.py`
@@ -69,7 +72,6 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 
 ### Show your appreciation
 If this project was helpful to you, I would appreicate if you could give it a star. That will encourage me to ensure it's up to date and solve issues quickly.
-
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->

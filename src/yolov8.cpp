@@ -115,27 +115,8 @@ void YoloV8::transformOutput(std::vector<std::vector<std::vector<float>>>& input
 std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<float>>& featureVectors) {
     const auto& outputDims = m_trtEngine->getOutputDims();
 
-    bool flag = false;
-    int bid;
-    int bcnt = -1;
-    int numChannels;
-    int numAnchors = 0;
-
-    // TODO Cyrus: can we clean this up?
-    // TODO Cyrus: Do we need bid?
-    for (auto& output : outputDims) {
-        bcnt += 1;
-        if (output.nbDims == 3) {
-            numChannels = output.d[1];
-            numAnchors = output.d[2];
-            flag = true;
-            bid = bcnt;
-        }
-    }
-
-    if (!flag) {
-        throw std::logic_error("Model has unexpected output");
-    }
+    int numChannels = outputDims[outputDims.size() - 1].d[1];
+    int numAnchors = outputDims[outputDims.size() - 1].d[2];
 
     const auto numClasses = numChannels - SEG_CHANNELS - 4;
 
@@ -148,10 +129,10 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
         throw std::logic_error("Output at index 1 has incorrect length");
     }
 
-    cv::Mat output = cv::Mat(numChannels, numAnchors, CV_32F, featureVectors[bid].data());
+    cv::Mat output = cv::Mat(numChannels, numAnchors, CV_32F, featureVectors[1].data());
     output = output.t();
 
-    cv::Mat protos = cv::Mat(SEG_CHANNELS, SEG_H * SEG_W, CV_32F, featureVectors[1 - bid].data());
+    cv::Mat protos = cv::Mat(SEG_CHANNELS, SEG_H * SEG_W, CV_32F, featureVectors[0].data());
 
     std::vector<int> labels;
     std::vector<float> scores;
@@ -159,6 +140,7 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
     std::vector<cv::Mat> maskConfs;
     std::vector<int> indices;
 
+    // Object the bounding boxes and class labels
     for (int i = 0; i < numAnchors; i++) {
         auto rowPtr = output.row(i).ptr<float>();
         auto bboxesPtr = rowPtr;
@@ -203,6 +185,7 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
             indices
     );
 
+    // Obtain the segmentation masks
     cv::Mat masks;
     std::vector<Object> objs;
     int cnt = 0;
@@ -220,6 +203,7 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
         cnt += 1;
     }
 
+    // Convert segmentation mask to original frame
     if (!masks.empty()) {
         cv::Mat matmulRes = (masks * protos).t();
         cv::Mat maskMat = matmulRes.reshape(indices.size(), { SEG_W, SEG_H });
