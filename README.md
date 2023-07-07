@@ -14,9 +14,6 @@
   <a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP">
     <img width="70%" src="assets/yolov8.gif" alt="logo">
   </a>
-  <a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP">
-    <img width="70%" src="assets/yolov8.gif" alt="logo">
-  </a>
 </p>
 
 
