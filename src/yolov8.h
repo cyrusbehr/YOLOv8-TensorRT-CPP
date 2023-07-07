@@ -15,12 +15,15 @@ struct Object {
     float probability{};
     // The object bounding box rectangle.
     cv::Rect_<float> rect;
+    // Semantic segmentation mask
+    cv::Mat boxMask;
 };
 
 class YoloV8 {
 public:
     // Builds the onnx model into a TensorRT engine, and loads the engine into memory
-    YoloV8(const std::string& onnxModelPath, const float probabilityThreshold = 0.25f, const float nmsThreshold = 0.65f, const int topK = 100);
+    YoloV8(const std::string& onnxModelPath, const float probabilityThreshold = 0.25f, const float nmsThreshold = 0.65f, const int topK = 100,
+           const int segChannels = 32, const int segH = 160, const int segW = 160);
 
     // Detect the objects in the image
     std::vector<Object> detectObjects(const cv::Mat& inputImgBGR);
@@ -34,8 +37,14 @@ private:
     // Postpreocess the output
     std::vector<Object> postprocess(std::vector<float>& featureVector);
 
+    // Postprocess the output for segmentation model
+    std::vector<Object> postProcessSegmentation(std::vector<std::vector<float>>& featureVectors);
+
+    // Utility method for transforming nested array into 2D array
+    static void transformOutput(std::vector<std::vector<std::vector<float>>>& input, std::vector<std::vector<float>>& output);
+
     // Utility method for transforming nested array into single array
-    void transformOutput(std::vector<std::vector<std::vector<float>>>& input, std::vector<float>& output);
+    static void transformOutput(std::vector<std::vector<std::vector<float>>>& input, std::vector<float>& output);
 
     std::unique_ptr<Engine> m_trtEngine = nullptr;
 
@@ -53,6 +62,10 @@ private:
     const float PROBABILITY_THRESHOLD;
     const float NMS_THRESHOLD;
     const int TOP_K;
+    // Segmentation constants
+    const int SEG_CHANNELS;
+    const int SEG_H;
+    const int SEG_W;
 
     /** Object classes as stings. */
     const std::vector<std::string> classNames = {
