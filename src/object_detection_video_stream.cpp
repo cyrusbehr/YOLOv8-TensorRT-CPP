@@ -7,13 +7,13 @@ int main(int argc, char *argv[]) {
     // Must pass the model path as a command line argument to the executable
     if (argc < 2) {
         std::cout << "Error: Must specify the model path" << std::endl;
-        std::cout << "Usage: " << argv[0] << "/path/to/onnx/model.onnx" << std::endl;
+        std::cout << "Usage: " << argv[0] << " /path/to/onnx/model.onnx" << std::endl;
         return -1;
     }
 
     if (argc > 3) {
         std::cout << "Error: Too many arguments provided" << std::endl;
-        std::cout << "Usage: " << argv[0] << "/path/to/onnx/model.onnx" << std::endl;
+        std::cout << "Usage: " << argv[0] << " /path/to/onnx/model.onnx" << std::endl;
     }
 
     // Ensure the onnx model exists
