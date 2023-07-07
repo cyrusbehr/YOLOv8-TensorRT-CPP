@@ -1,14 +1,15 @@
 #include <opencv2/cudaimgproc.hpp>
 #include "yolov8.h"
 
-YoloV8::YoloV8(const std::string &onnxModelPath, const float probabilityThreshold, const float nmsThreshold, const int topK,
-               const int segChannels, const int segH, const int segW)
+YoloV8::YoloV8(const std::string &onnxModelPath, float probabilityThreshold, float nmsThreshold, int topK,
+               int segChannels, int segH, int segW, float segmentationThreshold)
         : PROBABILITY_THRESHOLD(probabilityThreshold)
         , NMS_THRESHOLD(nmsThreshold)
         , TOP_K(topK)
         , SEG_CHANNELS(segChannels)
         , SEG_H(segH)
-        , SEG_W(segW) {
+        , SEG_W(segW)
+        , SEGMENTATION_THRESHOLD(segmentationThreshold) {
     // Specify options for GPU inference
     Options options;
     // This particular model only supports a fixed batch size of 1
@@ -232,7 +233,7 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
                     cv::Size(static_cast<int>(m_imgWidth), static_cast<int>(m_imgHeight)),
                     cv::INTER_LINEAR
             );
-            objs[i].boxMask = mask(objs[i].rect) > 0.5f;
+            objs[i].boxMask = mask(objs[i].rect) > SEGMENTATION_THRESHOLD;
         }
     }
 

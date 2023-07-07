@@ -22,8 +22,8 @@ struct Object {
 class YoloV8 {
 public:
     // Builds the onnx model into a TensorRT engine, and loads the engine into memory
-    YoloV8(const std::string& onnxModelPath, const float probabilityThreshold = 0.25f, const float nmsThreshold = 0.65f, const int topK = 100,
-           const int segChannels = 32, const int segH = 160, const int segW = 160);
+    YoloV8(const std::string& onnxModelPath, float probabilityThreshold = 0.25f, float nmsThreshold = 0.65f, int topK = 100,
+           int segChannels = 32, int segH = 160, int segW = 160, float segmentationThreshold = 0.5f);
 
     // Detect the objects in the image
     std::vector<Object> detectObjects(const cv::Mat& inputImgBGR);
@@ -66,6 +66,7 @@ private:
     const int SEG_CHANNELS;
     const int SEG_H;
     const int SEG_W;
+    const float SEGMENTATION_THRESHOLD;
 
     /** Object classes as stings. */
     const std::vector<std::string> classNames = {
