@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
 
     std::cout << "Benchmarking complete!" << std::endl;
     std::cout << "======================" << std::endl;
-    std::cout << "Avg time time: " << std::endl;
+    std::cout << "Avg time: " << std::endl;
     std::cout << avgElapsedTimeMs << "ms\n" << std::endl;
     std::cout << "Avg FPS: " << std::endl;
     std::cout << static_cast<int>(1000 / avgElapsedTimeMs) << " fps" << std::endl;
