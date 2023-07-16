@@ -40,12 +40,6 @@ private:
     // Postprocess the output for segmentation model
     std::vector<Object> postProcessSegmentation(std::vector<std::vector<float>>& featureVectors);
 
-    // Utility method for transforming nested array into 2D array
-    static void transformOutput(std::vector<std::vector<std::vector<float>>>& input, std::vector<std::vector<float>>& output);
-
-    // Utility method for transforming nested array into single array
-    static void transformOutput(std::vector<std::vector<std::vector<float>>>& input, std::vector<float>& output);
-
     std::unique_ptr<Engine> m_trtEngine = nullptr;
 
     // Used for image preprocessing

@@ -12,11 +12,8 @@ YoloV8::YoloV8(const std::string &onnxModelPath, float probabilityThreshold, flo
         , SEGMENTATION_THRESHOLD(segmentationThreshold) {
     // Specify options for GPU inference
     Options options;
-    // This particular model only supports a fixed batch size of 1
-    options.doesSupportDynamicBatchSize = false;
     options.optBatchSize = 1;
     options.maxBatchSize = 1;
-    options.maxWorkspaceSize = 2000000000;
 
     // Use FP16 precision to speed up inference
     options.precision = Precision::FP16;
@@ -86,31 +83,15 @@ std::vector<Object> YoloV8::detectObjects(const cv::Mat &inputImgBGR) {
         // Only object detection
         // Since we have a batch size of 1 and only 1 output, we must convert the output from a 3D array to a 1D array.
         std::vector<float> featureVector;
-        transformOutput(featureVectors, featureVector);
+        Engine::transformOutput(featureVectors, featureVector);
         return postprocess(featureVector);
     } else {
         // Segmentation
         // Since we have a batch size of 1 and 2 outputs, we must convert the output from a 3D array to a 2D array.
         std::vector<std::vector<float>> featureVector;
-        transformOutput(featureVectors, featureVector);
+        Engine::transformOutput(featureVectors, featureVector);
         return postProcessSegmentation(featureVector);
     }
-}
-
-void YoloV8::transformOutput(std::vector<std::vector<std::vector<float>>>& input, std::vector<std::vector<float>>& output) {
-    if (input.size() != 1) {
-        throw std::logic_error("The feature vector has incorrect dimensions!");
-    }
-
-    output = std::move(input[0]);
-}
-
-void YoloV8::transformOutput(std::vector<std::vector<std::vector<float>>>& input, std::vector<float>& output) {
-    if (input.size() != 1 || input[0].size() != 1) {
-        throw std::logic_error("The feature vector has incorrect dimensions!");
-    }
-
-    output = std::move(input[0][0]);
 }
 
 std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<float>>& featureVectors) {

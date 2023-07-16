@@ -22,9 +22,6 @@ public:
 };
 
 using preciseStopwatch = Stopwatch<>;
-using systemStopwatch = Stopwatch<std::chrono::system_clock>;
-using monotonicStopwatch = Stopwatch<std::chrono::steady_clock>;
-
 
 // Benchmarks the specified model
 int main(int argc, char *argv[]) {
