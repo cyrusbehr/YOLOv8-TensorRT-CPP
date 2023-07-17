@@ -1,6 +1,4 @@
 #include <chrono>
-typedef std::chrono::high_resolution_clock Clock;
-
 #include "yolov8.h"
 
 // Utility Timer
