@@ -53,7 +53,8 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 - `pip3 install ultralytics`
 - Navigate to the `scripts/` directory and modify this line so that it points to your downloaded model: `model = YOLO("../models/yolov8m.pt")`.
 - `python3 pytorch2onnx.py`
-- After running this command, you should successfully have converted from PyTorch to ONNX. 
+- After running this command, you should successfully have converted from PyTorch to ONNX.
+- **Note**: If converting the model using a different script, be sure that `end2end` is disabled. This flag will add bbox decoding and nms directly to the model, whereas my implementation does these steps external to the model using good old C++. 
 
 ### Building the Project
 - `mkdir build`
