@@ -58,7 +58,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Draw the bounding boxes on the image
-    numIts = 200;
+    numIts = 2000;
     std::cout << "Warmup done. Running benchmarks (" << numIts << " iterations)..." << std::endl;
     preciseStopwatch stopwatch;
     for (size_t i = 0; i < numIts; ++i) {
