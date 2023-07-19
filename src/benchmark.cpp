@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Load our benchmarking image
-    const std::string inputImage = "../images/cars.jpg";
+    const std::string inputImage = "../images/640_640.jpg";
     if (!doesFileExist(inputImage)) {
         std::cout << "Error: Unable to find file at path: " << inputImage << std::endl;
         return -1;
