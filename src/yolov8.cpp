@@ -60,31 +60,42 @@ std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::cuda::Gp
 }
 
 std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageRGB) {
+    preciseStopwatch s1;
     // Preprocess the input image
     const auto input = preprocess(inputImageRGB);
+    auto time = s1.elapsedTime<float, std::chrono::microseconds>();
+    std::cout << "Preprocess time: " << time << "us" << std::endl;
 
     // Run inference using the TensorRT engine
+    preciseStopwatch s2;
     std::vector<std::vector<std::vector<float>>> featureVectors;
     auto succ = m_trtEngine->runInference(input, featureVectors, SUB_VALS, DIV_VALS, NORMALIZE);
     if (!succ) {
         throw std::runtime_error("Error: Unable to run inference.");
     }
+    time = s2.elapsedTime<float, std::chrono::microseconds>();
+    std::cout << "Inference: " << time << "us" << std::endl;
 
     // Check if our model does only object detection or also supports segmentation
+    preciseStopwatch s3;
+    std::vector<Object> ret;
     const auto& numOutputs = m_trtEngine->getOutputDims().size();
     if (numOutputs == 1) {
         // Only object detection
         // Since we have a batch size of 1 and only 1 output, we must convert the output from a 3D array to a 1D array.
         std::vector<float> featureVector;
         Engine::transformOutput(featureVectors, featureVector);
-        return postprocess(featureVector);
+        ret = postprocess(featureVector);
     } else {
         // Segmentation
         // Since we have a batch size of 1 and 2 outputs, we must convert the output from a 3D array to a 2D array.
         std::vector<std::vector<float>> featureVector;
         Engine::transformOutput(featureVectors, featureVector);
-        return postProcessSegmentation(featureVector);
+        ret = postProcessSegmentation(featureVector);
     }
+    time = s3.elapsedTime<float, std::chrono::microseconds>();
+    std::cout << "Postprocess time: " << time << "us" << std::endl;
+    return ret;
 }
 
 std::vector<Object> YoloV8::detectObjects(const cv::Mat &inputImageRGB) {
