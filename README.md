@@ -77,7 +77,7 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 - If you'd like to benchmark each component (`preprocess`, `inference`, `postprocess`), recompile setting the `ENABLE_BENCHMARKS` to `ON`: `cmake -DENABLE_BENCHMARKS=ON ..`.
   - You can then rerun the executable
 
-Benchmarks run on RTX 3050 Ti Laptop GPU, 11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz
+Benchmarks run on RTX 3050 Ti Laptop GPU, 11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz using 640x640 RGB image in GPU memory.
 
 | Model   | Total Time | Preprocess Time | Inference Time | Postprocess Time |
 |---------|------------|-----------------|----------------|------------------|
