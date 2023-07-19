@@ -8,6 +8,12 @@ include(cmake/ccache.cmake)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Ofast -DNDEBUG -Wno-deprecated-declarations")
 
+# CMake Options
+option(ENABLE_BENCHMARKS "Benchmark the preprocessing, inference, and post processing" OFF)
+if (ENABLE_BENCHMARKS)
+    add_compile_definitions(ENABLE_BENCHMARKS)
+endif()
+
 find_package(OpenCV REQUIRED)
 
 # TODO: Specify the path to TensorRT root dir

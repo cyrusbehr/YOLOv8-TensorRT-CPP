@@ -71,6 +71,20 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
   - To change the video source, navigate to `src/object_detection_video_streaming.cpp` and change this line to your specific video source: ` cap.open(0);`.
   - The video source can be an int or a string (ex. "/dev/video4" or an RTSP url).
 
+### Benchmarking
+- Before running benchmarks, ensure your GPU is unloaded. 
+- Run the executable `benchmark` and provide the path to the model you want to benchmark. 
+- If you'd like to benchmark each component (`preprocess`, `inference`, `postprocess`), recompile setting the `ENABLE_BENCHMARKS` to `ON`: `cmake -DENABLE_BENCHMARKS=ON ..`.
+  - You can then rerun the executable
+
+Benchmarks run on RTX 3050 Ti Laptop GPU, 11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz
+
+| Model   | Total Time | Preprocess Time | Inference Time | Postprocess Time |
+|---------|------------|-----------------|----------------|------------------|
+| yolov8n | 3.84 ms    | 0.147 ms        | 2.659 ms       | 1.005 ms         |
+
+TODO: Need to improve postprocessing time. 
+
 ### How to debug
 - If you have issues creating the TensorRT engine file from the onnx model, navigate to `libs/tensorrt-cpp-api/src/engine.cpp` and change the log level by changing the severity level to `kVERBOSE` and rebuild and rerun. This should give you more information on where exactly the build process is failing.
 

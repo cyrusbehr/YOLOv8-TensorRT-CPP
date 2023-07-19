@@ -60,27 +60,33 @@ std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::cuda::Gp
 }
 
 std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageRGB) {
+    // Preprocess the input image
+#ifdef ENABLE_BENCHMARKS
     static int numIts = 1;
     preciseStopwatch s1;
-    // Preprocess the input image
+#endif
     const auto input = preprocess(inputImageRGB);
+#ifdef ENABLE_BENCHMARKS
     static long long t1 = 0;
     t1 += s1.elapsedTime<long long, std::chrono::microseconds>();
     std::cout << "Avg Preprocess time: " << t1 / numIts << "us" << std::endl;
-
+#endif
     // Run inference using the TensorRT engine
+#ifdef ENABLE_BENCHMARKS
     preciseStopwatch s2;
+#endif
     std::vector<std::vector<std::vector<float>>> featureVectors;
     auto succ = m_trtEngine->runInference(input, featureVectors, SUB_VALS, DIV_VALS, NORMALIZE);
     if (!succ) {
         throw std::runtime_error("Error: Unable to run inference.");
     }
+#ifdef ENABLE_BENCHMARKS
     static long long t2 = 0;
     t2 += s2.elapsedTime<long long, std::chrono::microseconds>();
     std::cout << "Avg Inference time: " << t2 / numIts << "us" << std::endl;
-
-    // Check if our model does only object detection or also supports segmentation
     preciseStopwatch s3;
+#endif
+    // Check if our model does only object detection or also supports segmentation
     std::vector<Object> ret;
     const auto& numOutputs = m_trtEngine->getOutputDims().size();
     if (numOutputs == 1) {
@@ -96,9 +102,11 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageRGB)
         Engine::transformOutput(featureVectors, featureVector);
         ret = postProcessSegmentation(featureVector);
     }
+#ifdef ENABLE_BENCHMARKS
     static long long t3 = 0;
     t3 +=  s3.elapsedTime<long long, std::chrono::microseconds>();
     std::cout << "Avg Postprocess time: " << t3 / numIts++ << "us\n" << std::endl;
+#endif
     return ret;
 }
 
