@@ -94,7 +94,7 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageRGB)
         ret = postProcessSegmentation(featureVector);
     }
     time = s3.elapsedTime<float, std::chrono::microseconds>();
-    std::cout << "Postprocess time: " << time << "us" << std::endl;
+    std::cout << "Postprocess time: " << time << "us\n" << std::endl;
     return ret;
 }
 
