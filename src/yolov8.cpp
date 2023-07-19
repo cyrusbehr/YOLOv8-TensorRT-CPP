@@ -60,11 +60,13 @@ std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::cuda::Gp
 }
 
 std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageRGB) {
+    static int numIts = 1;
     preciseStopwatch s1;
     // Preprocess the input image
     const auto input = preprocess(inputImageRGB);
-    auto time = s1.elapsedTime<float, std::chrono::microseconds>();
-    std::cout << "Preprocess time: " << time << "us" << std::endl;
+    static long long t1 = 0;
+    t1 += s1.elapsedTime<long long, std::chrono::microseconds>();
+    std::cout << "Avg Preprocess time: " << t1 / numIts << "us" << std::endl;
 
     // Run inference using the TensorRT engine
     preciseStopwatch s2;
@@ -73,8 +75,9 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageRGB)
     if (!succ) {
         throw std::runtime_error("Error: Unable to run inference.");
     }
-    time = s2.elapsedTime<float, std::chrono::microseconds>();
-    std::cout << "Inference: " << time << "us" << std::endl;
+    static long long t2 = 0;
+    t2 += s2.elapsedTime<long long, std::chrono::microseconds>();
+    std::cout << "Avg Inference time: " << t2 / numIts << "us" << std::endl;
 
     // Check if our model does only object detection or also supports segmentation
     preciseStopwatch s3;
@@ -93,8 +96,9 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageRGB)
         Engine::transformOutput(featureVectors, featureVector);
         ret = postProcessSegmentation(featureVector);
     }
-    time = s3.elapsedTime<float, std::chrono::microseconds>();
-    std::cout << "Postprocess time: " << time << "us\n" << std::endl;
+    static long long t3 = 0;
+    t3 +=  s3.elapsedTime<long long, std::chrono::microseconds>();
+    std::cout << "Avg Postprocess time: " << t3 / numIts++ << "us\n" << std::endl;
     return ret;
 }
 
