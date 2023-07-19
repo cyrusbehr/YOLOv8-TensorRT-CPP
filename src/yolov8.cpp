@@ -38,14 +38,7 @@ YoloV8::YoloV8(const std::string &onnxModelPath, float probabilityThreshold, flo
     }
 }
 
-std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::Mat &inputImgBGR) {
-    // Upload the image to GPU memory
-    cv::cuda::GpuMat gpuImg;
-    gpuImg.upload(inputImgBGR);
-
-    // The model expects RGB input
-    cv::cuda::cvtColor(gpuImg, gpuImg, cv::COLOR_BGR2RGB);
-
+std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::cuda::GpuMat &gpuImg) {
     // Populate the input vectors
     const auto& inputDims = m_trtEngine->getInputDims();
 
@@ -66,9 +59,9 @@ std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::Mat &inp
     return inputs;
 }
 
-std::vector<Object> YoloV8::detectObjects(const cv::Mat &inputImgBGR) {
+std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageRGB) {
     // Preprocess the input image
-    const auto input = preprocess(inputImgBGR);
+    const auto input = preprocess(inputImageRGB);
 
     // Run inference using the TensorRT engine
     std::vector<std::vector<std::vector<float>>> featureVectors;
@@ -92,6 +85,15 @@ std::vector<Object> YoloV8::detectObjects(const cv::Mat &inputImgBGR) {
         Engine::transformOutput(featureVectors, featureVector);
         return postProcessSegmentation(featureVector);
     }
+}
+
+std::vector<Object> YoloV8::detectObjects(const cv::Mat &inputImageRGB) {
+    // Upload the image to GPU memory
+    cv::cuda::GpuMat gpuImg;
+    gpuImg.upload(inputImageRGB);
+
+    // Call detectObjects with the GPU image
+    return detectObjects(gpuImg);
 }
 
 std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<float>>& featureVectors) {

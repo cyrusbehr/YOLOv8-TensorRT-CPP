@@ -1,4 +1,5 @@
 #include "yolov8.h"
+#include <opencv2/cudaimgproc.hpp>
 
 // Benchmarks the specified model
 int main(int argc, char *argv[]) {
@@ -40,13 +41,20 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
-    std::cout << "Benchmarking network with image of size: (" << img.cols << ", " << img.rows << ")" << std::endl;
+    // Upload the image to GPU memory
+    cv::cuda::GpuMat gpuImg;
+    gpuImg.upload(img);
+
+    // Convert from BGR to RGB
+    cv::cuda::cvtColor(gpuImg, gpuImg, cv::COLOR_BGR2RGB);
+
+    std::cout << "Benchmarking network with image of size: (" << gpuImg.cols << ", " << gpuImg.rows << ")" << std::endl;
 
     // Warm up the network
     std::cout << "Warming up the network..." << std::endl;
     size_t numIts = 50;
     for (size_t i = 0; i < numIts; ++i) {
-        const auto objects = yoloV8.detectObjects(img);
+        const auto objects = yoloV8.detectObjects(gpuImg);
     }
 
     // Draw the bounding boxes on the image
@@ -54,7 +62,7 @@ int main(int argc, char *argv[]) {
     std::cout << "Warmup done. Running benchmarks (" << numIts << " iterations)..." << std::endl;
     preciseStopwatch stopwatch;
     for (size_t i = 0; i < numIts; ++i) {
-        const auto objects = yoloV8.detectObjects(img);
+        const auto objects = yoloV8.detectObjects(gpuImg);
     }
 
     auto totalElapsedTimeMs = stopwatch.elapsedTime<float, std::chrono::milliseconds>();

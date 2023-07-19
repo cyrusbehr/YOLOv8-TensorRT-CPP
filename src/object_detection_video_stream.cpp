@@ -1,4 +1,5 @@
 #include "yolov8.h"
+#include <opencv2/cudaimgproc.hpp>
 
 // Runs object detection on video stream then displays annotated results.
 
@@ -56,8 +57,15 @@ int main(int argc, char *argv[]) {
             throw std::runtime_error("Unable to decode image from video stream.");
         }
 
+        // Upload to GPU memory
+        cv::cuda::GpuMat gpuImg;
+        gpuImg.upload(img);
+
+        // Convert from BGR to RGB
+        cv::cuda::cvtColor(gpuImg, gpuImg, cv::COLOR_BGR2RGB);
+
         // Run inference
-        const auto objects = yoloV8.detectObjects(img);
+        const auto objects = yoloV8.detectObjects(gpuImg);
 
         // Draw the bounding boxes on the image
         yoloV8.drawObjectLabels(img, objects);

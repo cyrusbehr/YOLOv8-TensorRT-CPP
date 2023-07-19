@@ -25,14 +25,16 @@ public:
     YoloV8(const std::string& onnxModelPath, float probabilityThreshold = 0.25f, float nmsThreshold = 0.65f, int topK = 100,
            int segChannels = 32, int segH = 160, int segW = 160, float segmentationThreshold = 0.5f);
 
+
     // Detect the objects in the image
-    std::vector<Object> detectObjects(const cv::Mat& inputImgBGR);
+    std::vector<Object> detectObjects(const cv::Mat& inputImageRGB);
+    std::vector<Object> detectObjects(const cv::cuda::GpuMat& inputImageRGB);
 
     // Draw the object bounding boxes and labels on the image
     void drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects, unsigned int scale = 2);
 private:
     // Preprocess the input
-    std::vector<std::vector<cv::cuda::GpuMat>> preprocess(const cv::Mat& inputImgBGR);
+    std::vector<std::vector<cv::cuda::GpuMat>> preprocess(const cv::cuda::GpuMat& gpuImg);
 
     // Postpreocess the output
     std::vector<Object> postprocess(std::vector<float>& featureVector);

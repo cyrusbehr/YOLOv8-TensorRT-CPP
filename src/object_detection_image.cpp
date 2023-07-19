@@ -41,6 +41,9 @@ int main(int argc, char *argv[]) {
         return -1;
     }
 
+    // Convert to RGB
+    cv::cvtColor(img, img, cv::COLOR_BGR2RGB);
+
     // Run inference
     const auto objects = yoloV8.detectObjects(img);
 
