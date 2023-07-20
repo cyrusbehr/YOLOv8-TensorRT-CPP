@@ -57,15 +57,8 @@ int main(int argc, char *argv[]) {
             throw std::runtime_error("Unable to decode image from video stream.");
         }
 
-        // Upload to GPU memory
-        cv::cuda::GpuMat gpuImg;
-        gpuImg.upload(img);
-
-        // Convert from BGR to RGB
-        cv::cuda::cvtColor(gpuImg, gpuImg, cv::COLOR_BGR2RGB);
-
         // Run inference
-        const auto objects = yoloV8.detectObjects(gpuImg);
+        const auto objects = yoloV8.detectObjects(img);
 
         // Draw the bounding boxes on the image
         yoloV8.drawObjectLabels(img, objects);

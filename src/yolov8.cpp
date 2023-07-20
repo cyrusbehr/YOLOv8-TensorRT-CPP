@@ -42,8 +42,17 @@ std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::cuda::Gp
     // Populate the input vectors
     const auto& inputDims = m_trtEngine->getInputDims();
 
+    // Convert the image from BGR to RGB
+    cv::cuda::GpuMat rgbMat;
+    cv::cuda::cvtColor(gpuImg, rgbMat, cv::COLOR_BGR2RGB);
+
+    auto resized = rgbMat;
+
     // Resize to the model expected input size while maintaining the aspect ratio with the use of padding
-    auto resized = Engine::resizeKeepAspectRatioPadRightBottom(gpuImg, inputDims[0].d[1], inputDims[0].d[2]);
+    if (resized.rows != inputDims[0].d[1] || resized.cols != inputDims[0].d[2]) {
+        // Only resize if not already the right size to avoid unecessary copy
+        resized = Engine::resizeKeepAspectRatioPadRightBottom(rgbMat, inputDims[0].d[1], inputDims[0].d[2]);
+    }
 
     // Convert to format expected by our inference engine
     // The reason for the strange format is because it supports models with multiple inputs as well as batching
@@ -52,20 +61,20 @@ std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::cuda::Gp
     std::vector<std::vector<cv::cuda::GpuMat>> inputs {std::move(input)};
 
     // These params will be used in the post-processing stage
-    m_imgHeight = gpuImg.rows;
-    m_imgWidth = gpuImg.cols;
-    m_ratio =  1.f / std::min(inputDims[0].d[2] / static_cast<float>(gpuImg.cols), inputDims[0].d[1] / static_cast<float>(gpuImg.rows));
+    m_imgHeight = rgbMat.rows;
+    m_imgWidth = rgbMat.cols;
+    m_ratio =  1.f / std::min(inputDims[0].d[2] / static_cast<float>(rgbMat.cols), inputDims[0].d[1] / static_cast<float>(rgbMat.rows));
 
     return inputs;
 }
 
-std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageRGB) {
+std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR) {
     // Preprocess the input image
 #ifdef ENABLE_BENCHMARKS
     static int numIts = 1;
     preciseStopwatch s1;
 #endif
-    const auto input = preprocess(inputImageRGB);
+    const auto input = preprocess(inputImageBGR);
 #ifdef ENABLE_BENCHMARKS
     static long long t1 = 0;
     t1 += s1.elapsedTime<long long, std::chrono::microseconds>();
@@ -110,10 +119,10 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageRGB)
     return ret;
 }
 
-std::vector<Object> YoloV8::detectObjects(const cv::Mat &inputImageRGB) {
+std::vector<Object> YoloV8::detectObjects(const cv::Mat &inputImageBGR) {
     // Upload the image to GPU memory
     cv::cuda::GpuMat gpuImg;
-    gpuImg.upload(inputImageRGB);
+    gpuImg.upload(inputImageBGR);
 
     // Call detectObjects with the GPU image
     return detectObjects(gpuImg);

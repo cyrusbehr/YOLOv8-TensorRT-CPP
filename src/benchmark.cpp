@@ -45,9 +45,6 @@ int main(int argc, char *argv[]) {
     cv::cuda::GpuMat gpuImg;
     gpuImg.upload(img);
 
-    // Convert from BGR to RGB
-    cv::cuda::cvtColor(gpuImg, gpuImg, cv::COLOR_BGR2RGB);
-
     std::cout << "Benchmarking network with image of size: (" << gpuImg.cols << ", " << gpuImg.rows << ")" << std::endl;
 
     // Warm up the network
