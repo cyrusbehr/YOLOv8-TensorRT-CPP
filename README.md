@@ -87,6 +87,10 @@ TODO: Need to improve postprocessing time.
 ### How to debug
 - If you have issues creating the TensorRT engine file from the onnx model, navigate to `libs/tensorrt-cpp-api/src/engine.cpp` and change the log level by changing the severity level to `kVERBOSE` and rebuild and rerun. This should give you more information on where exactly the build process is failing.
 
+### Contributors
+<!-- readme: contributors -start -->
+<!-- readme: contributors -end -->
+
 ### Show your appreciation
 If this project was helpful to you, I would appreicate if you could give it a star. That will encourage me to ensure it's up to date and solve issues quickly.
 
