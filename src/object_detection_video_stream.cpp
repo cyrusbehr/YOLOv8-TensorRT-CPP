@@ -3,7 +3,7 @@
 
 YoloV8Config config;
 std::string onnxModelPath;
-std::string videoCaptureInput;
+std::string inputVideo;
 
 void showHelp(char* argv[]) {
 	std::cout << "Usage: " << argv[0] << " [OPTIONS]" << std::endl << std::endl;
@@ -93,7 +93,7 @@ bool parseArguments(int argc, char* argv[]) {
 				if (!tryGetNextArgument(argc, argv, i, nextArgument, flag))
 					return false;
 
-				videoCaptureInput = nextArgument;
+				inputVideo = nextArgument;
 			}
 
 			else if (flag == "prob-threshold") {
@@ -205,7 +205,7 @@ bool parseArguments(int argc, char* argv[]) {
 		return false;
 	}
 
-	if (videoCaptureInput.empty()) {
+	if (inputVideo.empty()) {
 		std::cout << "Error: No arguments provided for flag 'input'" << std::endl;
 		return false;
 	}
@@ -228,10 +228,10 @@ int main(int argc, char* argv[]) {
 
 	// Open video capture
 	try {
-		cap.open(std::stoi(videoCaptureInput));
+		cap.open(std::stoi(inputVideo));
 	}
 	catch (std::exception e) {
-		cap.open(videoCaptureInput);
+		cap.open(inputVideo);
 	}
 
 	// Try to use HD resolution (or closest resolution)
@@ -245,16 +245,15 @@ int main(int argc, char* argv[]) {
 	std::cout << "New video resolution: (" << resW << "x" << resH << ")" << std::endl;
 
 	if (!cap.isOpened())
-		throw std::runtime_error("Unable to open video capture with input '" + videoCaptureInput + "'");
+		throw std::runtime_error("Unable to open video capture with input '" + inputVideo + "'");
 
 	while (true) {
 		// Grab frame
 		cv::Mat img;
 		cap >> img;
 
-		if (img.empty()) {
+		if (img.empty())
 			throw std::runtime_error("Unable to decode image from video stream.");
-		}
 
 		// Run inference
 		const auto objects = yoloV8.detectObjects(img);
@@ -264,9 +263,8 @@ int main(int argc, char* argv[]) {
 
 		// Display the results
 		cv::imshow("Object Detection", img);
-		if (cv::waitKey(1) >= 0) {
+		if (cv::waitKey(1) >= 0)
 			break;
-		}
 	}
 
 	return 0;
