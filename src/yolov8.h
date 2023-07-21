@@ -20,7 +20,6 @@ struct Object {
 };
 
 struct YoloV8Config {
-    std::string onnxModelPath;
     float probabilityThreshold = 0.25f;
     float nmsThreshold = 0.65f;
     int topK = 100;
@@ -58,7 +57,7 @@ public:
         }
     );
 
-    YoloV8(const YoloV8Config config);
+    YoloV8(const std::string& onnxModelPath, const YoloV8Config config);
 
     // Detect the objects in the image
     std::vector<Object> detectObjects(const cv::Mat& inputImageBGR);

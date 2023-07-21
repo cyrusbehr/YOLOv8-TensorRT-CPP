@@ -39,8 +39,8 @@ YoloV8::YoloV8(const std::string &onnxModelPath, float probabilityThreshold, flo
     }
 }
 
-YoloV8::YoloV8(const YoloV8Config config)
-        : YoloV8(config.onnxModelPath, config.probabilityThreshold, config.nmsThreshold, config.topK,
+YoloV8::YoloV8(const std::string& onnxModelPath, const YoloV8Config config)
+        : YoloV8(onnxModelPath, config.probabilityThreshold, config.nmsThreshold, config.topK,
                  config.segChannels, config.segH, config.segW, config.segmentationThreshold, config.classNames)
 {
 
