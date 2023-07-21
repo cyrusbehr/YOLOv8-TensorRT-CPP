@@ -1,16 +1,15 @@
 #include <opencv2/cudaimgproc.hpp>
 #include "yolov8.h"
 
-YoloV8::YoloV8(const std::string &onnxModelPath, float probabilityThreshold, float nmsThreshold, int topK,
-               int segChannels, int segH, int segW, float segmentationThreshold, std::vector<std::string> classNames)
-        : PROBABILITY_THRESHOLD(probabilityThreshold)
-        , NMS_THRESHOLD(nmsThreshold)
-        , TOP_K(topK)
-        , SEG_CHANNELS(segChannels)
-        , SEG_H(segH)
-        , SEG_W(segW)
-        , SEGMENTATION_THRESHOLD(segmentationThreshold)
-        , CLASS_NAMES(classNames) {
+YoloV8::YoloV8(const std::string& onnxModelPath, const YoloV8Config& config)
+        : PROBABILITY_THRESHOLD(config.probabilityThreshold)
+        , NMS_THRESHOLD(config.nmsThreshold)
+        , TOP_K(config.topK)
+        , SEG_CHANNELS(config.segChannels)
+        , SEG_H(config.segH)
+        , SEG_W(config.segW)
+        , SEGMENTATION_THRESHOLD(config.segmentationThreshold)
+        , CLASS_NAMES(config.classNames) {
     // Specify options for GPU inference
     Options options;
     options.optBatchSize = 1;
@@ -37,13 +36,6 @@ YoloV8::YoloV8(const std::string &onnxModelPath, float probabilityThreshold, flo
     if (!succ) {
         throw std::runtime_error("Error: Unable to load TensorRT engine weights into memory.");
     }
-}
-
-YoloV8::YoloV8(const std::string& onnxModelPath, const YoloV8Config config)
-        : YoloV8(onnxModelPath, config.probabilityThreshold, config.nmsThreshold, config.topK,
-                 config.segChannels, config.segH, config.segW, config.segmentationThreshold, config.classNames)
-{
-
 }
 
 std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::cuda::GpuMat &gpuImg) {

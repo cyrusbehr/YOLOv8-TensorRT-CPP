@@ -19,14 +19,21 @@ struct Object {
     cv::Mat boxMask;
 };
 
+// Config the behavior of the YoloV8 detector.
+// Can pass these arguments as command line parameters.
 struct YoloV8Config {
+    // Probability threshold used to filter detected objects
     float probabilityThreshold = 0.25f;
+    // Non-maximum suppression threshold
     float nmsThreshold = 0.65f;
+    // Max number of detected objects to return
     int topK = 100;
+    // Segmentation config options
     int segChannels = 32;
     int segH = 160;
     int segW = 160;
     float segmentationThreshold = 0.5f;
+    // Class thresholds (default are COCO classes)
     std::vector<std::string> classNames = {
         "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
         "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
@@ -43,21 +50,7 @@ struct YoloV8Config {
 class YoloV8 {
 public:
     // Builds the onnx model into a TensorRT engine, and loads the engine into memory
-    YoloV8(const std::string& onnxModelPath, float probabilityThreshold = 0.25f, float nmsThreshold = 0.65f, int topK = 100,
-           int segChannels = 32, int segH = 160, int segW = 160, float segmentationThreshold = 0.5f, std::vector<std::string> classNames = {
-            "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
-            "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
-            "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-            "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
-            "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
-            "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
-            "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
-            "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
-            "hair drier", "toothbrush"
-        }
-    );
-
-    YoloV8(const std::string& onnxModelPath, const YoloV8Config config);
+    YoloV8(const std::string& onnxModelPath, const YoloV8Config& config);
 
     // Detect the objects in the image
     std::vector<Object> detectObjects(const cv::Mat& inputImageBGR);
@@ -83,9 +76,9 @@ private:
     const std::array<float, 3> DIV_VALS {1.f, 1.f, 1.f};
     const bool NORMALIZE = true;
 
-    float m_ratio;
-    float m_imgWidth;
-    float m_imgHeight;
+    float m_ratio = 1;
+    float m_imgWidth = 0;
+    float m_imgHeight = 0;
 
     // Filter thresholds
     const float PROBABILITY_THRESHOLD;

@@ -72,7 +72,7 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 
 ### Benchmarking
 - Before running benchmarks, ensure your GPU is unloaded. 
-- Run the executable `benchmark` and provide the path to the model you want to benchmark. 
+- Run the executable `benchmark` using the `/images/640_640.jpg` image. 
 - If you'd like to benchmark each component (`preprocess`, `inference`, `postprocess`), recompile setting the `ENABLE_BENCHMARKS` flag to `ON`: `cmake -DENABLE_BENCHMARKS=ON ..`.
   - You can then rerun the executable
 
