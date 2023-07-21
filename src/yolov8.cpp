@@ -2,14 +2,15 @@
 #include "yolov8.h"
 
 YoloV8::YoloV8(const std::string &onnxModelPath, float probabilityThreshold, float nmsThreshold, int topK,
-               int segChannels, int segH, int segW, float segmentationThreshold)
+               int segChannels, int segH, int segW, float segmentationThreshold, std::vector<std::string> classNames)
         : PROBABILITY_THRESHOLD(probabilityThreshold)
         , NMS_THRESHOLD(nmsThreshold)
         , TOP_K(topK)
         , SEG_CHANNELS(segChannels)
         , SEG_H(segH)
         , SEG_W(segW)
-        , SEGMENTATION_THRESHOLD(segmentationThreshold) {
+        , SEGMENTATION_THRESHOLD(segmentationThreshold)
+        , CLASS_NAMES(classNames) {
     // Specify options for GPU inference
     Options options;
     options.optBatchSize = 1;
@@ -36,6 +37,13 @@ YoloV8::YoloV8(const std::string &onnxModelPath, float probabilityThreshold, flo
     if (!succ) {
         throw std::runtime_error("Error: Unable to load TensorRT engine weights into memory.");
     }
+}
+
+YoloV8::YoloV8(const std::string& onnxModelPath, const YoloV8Config config)
+        : YoloV8(onnxModelPath, config.probabilityThreshold, config.nmsThreshold, config.topK,
+                 config.segChannels, config.segH, config.segW, config.segmentationThreshold, config.classNames)
+{
+
 }
 
 std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::cuda::GpuMat &gpuImg) {
@@ -260,7 +268,7 @@ std::vector<Object> YoloV8::postprocess(std::vector<float> &featureVector) {
     auto numChannels = outputDims[0].d[1];
     auto numAnchors = outputDims[0].d[2];
 
-    auto numClasses = classNames.size();
+    auto numClasses = CLASS_NAMES.size();
 
     std::vector<cv::Rect> bboxes;
     std::vector<float> scores;
@@ -331,8 +339,10 @@ void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects
         cv::Mat mask = image.clone();
         for (const auto& object: objects) {
             // Choose the color
-            cv::Scalar color = cv::Scalar(COLOR_LIST[object.label][0], COLOR_LIST[object.label][1],
-                                          COLOR_LIST[object.label][2]);
+            int colorIndex = object.label % 80;
+            cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0],
+                                          COLOR_LIST[colorIndex][1],
+                                          COLOR_LIST[colorIndex][2]);
 
             // Add the mask for said object
             mask(object.rect).setTo(color * 255, object.boxMask);
@@ -344,8 +354,10 @@ void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects
     // Bounding boxes and annotations
     for (auto & object : objects) {
         // Choose the color
-        cv::Scalar color = cv::Scalar(COLOR_LIST[object.label][0], COLOR_LIST[object.label][1],
-                                      COLOR_LIST[object.label][2]);
+		int colorIndex = object.label % 80;
+        cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0],
+                                      COLOR_LIST[colorIndex][1],
+                                      COLOR_LIST[colorIndex][2]);
         float meanColor = cv::mean(color)[0];
         cv::Scalar txtColor;
         if (meanColor > 0.5){
@@ -358,7 +370,7 @@ void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects
 
         // Draw rectangles and text
         char text[256];
-        sprintf(text, "%s %.1f%%", classNames[object.label].c_str(), object.probability * 100);
+        sprintf(text, "%s %.1f%%", CLASS_NAMES[object.label].c_str(), object.probability * 100);
 
         int baseLine = 0;
         cv::Size labelSize = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.35 * scale, scale, &baseLine);
