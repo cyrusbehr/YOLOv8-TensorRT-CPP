@@ -39,6 +39,13 @@ YoloV8::YoloV8(const std::string &onnxModelPath, float probabilityThreshold, flo
     }
 }
 
+YoloV8::YoloV8(const YoloV8Config config)
+        : YoloV8(config.onnxModelPath, config.probabilityThreshold, config.nmsThreshold, config.topK,
+                 config.segChannels, config.segH, config.segW, config.segmentationThreshold, config.classNames)
+{
+
+}
+
 std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::cuda::GpuMat &gpuImg) {
     // Populate the input vectors
     const auto& inputDims = m_trtEngine->getInputDims();

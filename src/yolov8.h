@@ -19,6 +19,28 @@ struct Object {
     cv::Mat boxMask;
 };
 
+struct YoloV8Config {
+    std::string onnxModelPath;
+    float probabilityThreshold = 0.25f;
+    float nmsThreshold = 0.65f;
+    int topK = 100;
+    int segChannels = 32;
+    int segH = 160;
+    int segW = 160;
+    float segmentationThreshold = 0.5f;
+    std::vector<std::string> classNames = {
+        "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
+        "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
+        "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
+        "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
+        "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
+        "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
+        "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
+        "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
+        "hair drier", "toothbrush"
+    };
+};
+
 class YoloV8 {
 public:
     // Builds the onnx model into a TensorRT engine, and loads the engine into memory
@@ -35,6 +57,8 @@ public:
             "hair drier", "toothbrush"
         }
     );
+
+    YoloV8(const YoloV8Config config);
 
     // Detect the objects in the image
     std::vector<Object> detectObjects(const cv::Mat& inputImageBGR);
