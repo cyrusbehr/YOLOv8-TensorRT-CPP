@@ -339,8 +339,10 @@ void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects
         cv::Mat mask = image.clone();
         for (const auto& object: objects) {
             // Choose the color
-            cv::Scalar color = cv::Scalar(COLOR_LIST[object.label][0], COLOR_LIST[object.label][1],
-                                          COLOR_LIST[object.label][2]);
+            int colorIndex = object.label % 80;
+            cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0],
+                                          COLOR_LIST[colorIndex][1],
+                                          COLOR_LIST[colorIndex][2]);
 
             // Add the mask for said object
             mask(object.rect).setTo(color * 255, object.boxMask);
@@ -352,8 +354,10 @@ void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects
     // Bounding boxes and annotations
     for (auto & object : objects) {
         // Choose the color
-        cv::Scalar color = cv::Scalar(COLOR_LIST[object.label][0], COLOR_LIST[object.label][1],
-                                      COLOR_LIST[object.label][2]);
+		int colorIndex = object.label % 80;
+        cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0],
+                                      COLOR_LIST[colorIndex][1],
+                                      COLOR_LIST[colorIndex][2]);
         float meanColor = cv::mean(color)[0];
         cv::Scalar txtColor;
         if (meanColor > 0.5){
