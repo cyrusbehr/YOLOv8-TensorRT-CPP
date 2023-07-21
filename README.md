@@ -64,12 +64,11 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 
 ### Running the Executables
 - *Note*: the first time you run any of the scripts, it may take quite a long time (5 mins+) as TensorRT must generate an optimized TensorRT engine file from the onnx model. This is then saved to disk and loaded on subsequent runs.
-- To run the benchmarking script, run: `./benchmark /path/to/your/onnx/model.onnx`
-- To run inference on an image and save the annotated image to disk run: `./detect_object_image /path/to/your/onnx/model.onnx /path/to/your/image.jpg`
+- To run the benchmarking script, run: `./benchmark --model /path/to/your/onnx/model.onnx --input /path/to/your/benchmark/image.png`
+- To run inference on an image and save the annotated image to disk run: `./detect_object_image --model /path/to/your/onnx/model.onnx --input /path/to/your/image.jpg`
   - You can use the images in the `images/` directory for testing
-- To run inference using your webcam and display the results in real time, run: `./detect_object_video /path/to/your/onnx/model.onnx`
-  - To change the video source, navigate to `src/object_detection_video_streaming.cpp` and change this line to your specific video source: ` cap.open(0);`.
-  - The video source can be an int or a string (ex. "/dev/video4" or an RTSP url).
+- To run inference using your webcam and display the results in real time, run: `./detect_object_video --model /path/to/your/onnx/model.onnx --input 0`
+- For a full list of arguments, run any of the executables without providing any arguments.
 
 ### Benchmarking
 - Before running benchmarks, ensure your GPU is unloaded. 
