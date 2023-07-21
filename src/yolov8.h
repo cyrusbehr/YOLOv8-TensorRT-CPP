@@ -98,7 +98,7 @@ private:
     const float SEGMENTATION_THRESHOLD;
 
     // Object classes as strings
-    const std::vector<std::string> CLASSNAMES;
+    const std::vector<std::string> CLASS_NAMES;
 
     // Color list for drawing objects
     const float COLOR_LIST[80][3] = {

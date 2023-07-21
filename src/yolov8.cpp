@@ -10,7 +10,7 @@ YoloV8::YoloV8(const std::string &onnxModelPath, float probabilityThreshold, flo
         , SEG_H(segH)
         , SEG_W(segW)
         , SEGMENTATION_THRESHOLD(segmentationThreshold)
-        , CLASSNAMES(classNames) {
+        , CLASS_NAMES(classNames) {
     // Specify options for GPU inference
     Options options;
     options.optBatchSize = 1;
@@ -268,7 +268,7 @@ std::vector<Object> YoloV8::postprocess(std::vector<float> &featureVector) {
     auto numChannels = outputDims[0].d[1];
     auto numAnchors = outputDims[0].d[2];
 
-    auto numClasses = CLASSNAMES.size();
+    auto numClasses = CLASS_NAMES.size();
 
     std::vector<cv::Rect> bboxes;
     std::vector<float> scores;
@@ -370,7 +370,7 @@ void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects
 
         // Draw rectangles and text
         char text[256];
-        sprintf(text, "%s %.1f%%", CLASSNAMES[object.label].c_str(), object.probability * 100);
+        sprintf(text, "%s %.1f%%", CLASS_NAMES[object.label].c_str(), object.probability * 100);
 
         int baseLine = 0;
         cv::Size labelSize = cv::getTextSize(text, cv::FONT_HERSHEY_SIMPLEX, 0.35 * scale, scale, &baseLine);
