@@ -80,7 +80,7 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
 #ifdef ENABLE_BENCHMARKS
     static long long t1 = 0;
     t1 += s1.elapsedTime<long long, std::chrono::microseconds>();
-    std::cout << "Avg Preprocess time: " << (t1 / numIts) / 1000.f << "ms" << std::endl;
+    std::cout << "Avg Preprocess time: " << (t1 / numIts) / 1000.f << " ms" << std::endl;
 #endif
     // Run inference using the TensorRT engine
 #ifdef ENABLE_BENCHMARKS
@@ -94,7 +94,7 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
 #ifdef ENABLE_BENCHMARKS
     static long long t2 = 0;
     t2 += s2.elapsedTime<long long, std::chrono::microseconds>();
-    std::cout << "Avg Inference time: " << (t2 / numIts) / 1000.f << "ms" << std::endl;
+    std::cout << "Avg Inference time: " << (t2 / numIts) / 1000.f << " ms" << std::endl;
     preciseStopwatch s3;
 #endif
     // Check if our model does only object detection or also supports segmentation
@@ -127,7 +127,7 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
 #ifdef ENABLE_BENCHMARKS
     static long long t3 = 0;
     t3 +=  s3.elapsedTime<long long, std::chrono::microseconds>();
-    std::cout << "Avg Postprocess time: " << (t3 / numIts++) / 1000.f << "ms\n" << std::endl;
+    std::cout << "Avg Postprocess time: " << (t3 / numIts++) / 1000.f << " ms\n" << std::endl;
 #endif
     return ret;
 }
@@ -497,8 +497,8 @@ void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects
                 float pos2S = kps[(ske[1] - 1) * 3 + 2];
 
                 if (pos1S > KPS_THRESHOLD && pos2S > KPS_THRESHOLD) {
-                    cv::Scalar limb_color = cv::Scalar(LIMB_COLORS[k][0], LIMB_COLORS[k][1], LIMB_COLORS[k][2]);
-                    cv::line(image, {pos1X, pos1Y}, {pos2X, pos2Y}, limb_color, 2);
+                    cv::Scalar limbColor = cv::Scalar(LIMB_COLORS[k][0], LIMB_COLORS[k][1], LIMB_COLORS[k][2]);
+                    cv::line(image, {pos1X, pos1Y}, {pos2X, pos2Y}, limbColor, 2);
                 }
             }
         }

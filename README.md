@@ -81,9 +81,11 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 
 Benchmarks run on RTX 3050 Ti Laptop GPU, 11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz using 640x640 BGR image in GPU memory.
 
-| Model   | Total Time | Preprocess Time | Inference Time | Postprocess Time |
-|---------|------------|-----------------|----------------|------------------|
-| yolov8n | 3.753 ms   | 0.084 ms        | 2.625 ms       | 1.013 ms         |
+| Model        | Total Time | Preprocess Time | Inference Time | Postprocess Time |
+|--------------|------------|-----------------|----------------|------------------|
+| yolov8n      | 3.753 ms   | 0.084 ms        | 2.625 ms       | 1.013 ms         |
+| yolov8n-pose | 2.992 ms   | 0.084 ms        | 2.571 ms       | 0.315 ms         |
+| yolov8n-seg  | 15.309 ms  | 0.110 ms        | 4.305 ms       | 10.792 ms        |
 
 TODO: Need to improve postprocessing time. 
 
