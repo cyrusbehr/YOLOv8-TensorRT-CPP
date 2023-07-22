@@ -78,7 +78,7 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
 #ifdef ENABLE_BENCHMARKS
     static long long t1 = 0;
     t1 += s1.elapsedTime<long long, std::chrono::microseconds>();
-    std::cout << "Avg Preprocess time: " << t1 / numIts << "us" << std::endl;
+    std::cout << "Avg Preprocess time: " << (t1 / numIts) / 1000.f << "ms" << std::endl;
 #endif
     // Run inference using the TensorRT engine
 #ifdef ENABLE_BENCHMARKS
@@ -92,7 +92,7 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
 #ifdef ENABLE_BENCHMARKS
     static long long t2 = 0;
     t2 += s2.elapsedTime<long long, std::chrono::microseconds>();
-    std::cout << "Avg Inference time: " << t2 / numIts << "us" << std::endl;
+    std::cout << "Avg Inference time: " << (t2 / numIts) / 1000.f << "ms" << std::endl;
     preciseStopwatch s3;
 #endif
     // Check if our model does only object detection or also supports segmentation
@@ -114,7 +114,7 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
 #ifdef ENABLE_BENCHMARKS
     static long long t3 = 0;
     t3 +=  s3.elapsedTime<long long, std::chrono::microseconds>();
-    std::cout << "Avg Postprocess time: " << t3 / numIts++ << "us\n" << std::endl;
+    std::cout << "Avg Postprocess time: " << (t3 / numIts++) / 1000.f << "ms\n" << std::endl;
 #endif
     return ret;
 }
@@ -331,7 +331,7 @@ void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects
         cv::Mat mask = image.clone();
         for (const auto& object: objects) {
             // Choose the color
-            int colorIndex = object.label % 80;
+            int colorIndex = object.label % COLOR_LIST.size(); // We have only defined 80 unique colors
             cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0],
                                           COLOR_LIST[colorIndex][1],
                                           COLOR_LIST[colorIndex][2]);
@@ -346,7 +346,7 @@ void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects
     // Bounding boxes and annotations
     for (auto & object : objects) {
         // Choose the color
-		int colorIndex = object.label % 80;
+		int colorIndex = object.label % COLOR_LIST.size(); // We have only defined 80 unique colors
         cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0],
                                       COLOR_LIST[colorIndex][1],
                                       COLOR_LIST[colorIndex][2]);

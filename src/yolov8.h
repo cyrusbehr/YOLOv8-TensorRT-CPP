@@ -94,7 +94,7 @@ private:
     const std::vector<std::string> CLASS_NAMES;
 
     // Color list for drawing objects
-    const float COLOR_LIST[80][3] = {
+    const std::vector<std::vector<float>> COLOR_LIST = {
             {1, 1, 1},
             {0.098, 0.325, 0.850},
             {0.125, 0.694, 0.929},
