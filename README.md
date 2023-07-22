@@ -50,8 +50,8 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 - **Note:** Be sure to use the `--recursive` flag as this repo makes use of git submodules. 
 
 ### Converting Model from PyTorch to ONNX
-- Navigate to the [official YoloV8 repository](https://github.com/ultralytics/ultralytics) and download your desired version of the model (ex. YOLOv8m).
-  - The code also supports semantic segmentation models out of the box (ex. YOLOv8x-seg)
+- Navigate to the [official YoloV8 repository](https://github.com/ultralytics/ultralytics) and download your desired version of the model (ex. YOLOv8x).
+  - The code also supports semantic segmentation models out of the box (ex. YOLOv8x-seg) and pose estimation models (ex. yolov8x-pose.onnx).
 - `pip3 install ultralytics`
 - Navigate to the `scripts/` directory and modify this line so that it points to your downloaded model: `model = YOLO("../models/yolov8m.pt")`.
 - `python3 pytorch2onnx.py`
@@ -66,6 +66,7 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 
 ### Running the Executables
 - *Note*: the first time you run any of the scripts, it may take quite a long time (5 mins+) as TensorRT must generate an optimized TensorRT engine file from the onnx model. This is then saved to disk and loaded on subsequent runs.
+- *Note*: The executables all work out of the box with Ultralytic's pretrained object detection, segmentation, and pose estimation models. 
 - To run the benchmarking script, run: `./benchmark --model /path/to/your/onnx/model.onnx --input /path/to/your/benchmark/image.png`
 - To run inference on an image and save the annotated image to disk run: `./detect_object_image --model /path/to/your/onnx/model.onnx --input /path/to/your/image.jpg`
   - You can use the images in the `images/` directory for testing
@@ -78,11 +79,11 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 - If you'd like to benchmark each component (`preprocess`, `inference`, `postprocess`), recompile setting the `ENABLE_BENCHMARKS` flag to `ON`: `cmake -DENABLE_BENCHMARKS=ON ..`.
   - You can then rerun the executable
 
-Benchmarks run on RTX 3050 Ti Laptop GPU, 11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz using 640x640 RGB image in GPU memory.
+Benchmarks run on RTX 3050 Ti Laptop GPU, 11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz using 640x640 BGR image in GPU memory.
 
 | Model   | Total Time | Preprocess Time | Inference Time | Postprocess Time |
 |---------|------------|-----------------|----------------|------------------|
-| yolov8n | 3.84 ms    | 0.147 ms        | 2.659 ms       | 1.005 ms         |
+| yolov8n | 3.753 ms   | 0.084 ms        | 2.625 ms       | 1.013 ms         |
 
 TODO: Need to improve postprocessing time. 
 
