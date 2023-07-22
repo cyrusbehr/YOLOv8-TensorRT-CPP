@@ -1,9 +1,7 @@
 [![Stargazers][stars-shield]][stars-url]
-<!-- ALL-CONTRIBUTORS-BADGE:START - Do not remove or modify this section -->
-[![All Contributors](https://img.shields.io/badge/all_contributors-1-orange.svg?style=flat-square)](#contributors-)
-<!-- ALL-CONTRIBUTORS-BADGE:END -->
 [![Issues][issues-shield]][issues-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
+[![Contributors]contributors-badge-url](#contributors)
 
 
 <!-- PROJECT LOGO -->
@@ -127,3 +125,5 @@ If this project was helpful to you, I would appreicate if you could give it a st
 [issues-url]: https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP/issues
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/cyrus-behroozi/
+[contributors-badge-url]: https://img.shields.io/github/all-contributors/cyrusbehr/YOLOv8-TensorRT-CPP?color=ee8449&style=flat-square
+
