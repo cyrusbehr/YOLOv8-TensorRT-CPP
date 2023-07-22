@@ -17,6 +17,8 @@ struct Object {
     cv::Rect_<float> rect;
     // Semantic segmentation mask
     cv::Mat boxMask;
+    // Pose estimation key points
+    std::vector<float> kps{};
 };
 
 // Config the behavior of the YoloV8 detector.
@@ -33,6 +35,9 @@ struct YoloV8Config {
     int segH = 160;
     int segW = 160;
     float segmentationThreshold = 0.5f;
+    // Pose estimation options
+    int numKPS = 17;
+    float kpsThreshold = 0.5f;
     // Class thresholds (default are COCO classes)
     std::vector<std::string> classNames = {
         "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
@@ -62,11 +67,16 @@ private:
     // Preprocess the input
     std::vector<std::vector<cv::cuda::GpuMat>> preprocess(const cv::cuda::GpuMat& gpuImg);
 
-    // Postpreocess the output
-    std::vector<Object> postprocess(std::vector<float>& featureVector);
+    // Postprocess the output
+    std::vector<Object> postprocessDetect(std::vector<float>& featureVector);
+
+    // Postprocess the output for pose model
+    std::vector<Object> postprocessPose(std::vector<float>& featureVector);
 
     // Postprocess the output for segmentation model
     std::vector<Object> postProcessSegmentation(std::vector<std::vector<float>>& featureVectors);
+
+
 
     std::unique_ptr<Engine> m_trtEngine = nullptr;
 
@@ -84,6 +94,7 @@ private:
     const float PROBABILITY_THRESHOLD;
     const float NMS_THRESHOLD;
     const int TOP_K;
+
     // Segmentation constants
     const int SEG_CHANNELS;
     const int SEG_H;
@@ -92,6 +103,10 @@ private:
 
     // Object classes as strings
     const std::vector<std::string> CLASS_NAMES;
+
+    // Pose estimation constant
+    const int NUM_KPS;
+    const float KPS_THRESHOLD;
 
     // Color list for drawing objects
     const std::vector<std::vector<float>> COLOR_LIST = {
@@ -175,5 +190,69 @@ private:
             {0.741, 0.447, 0.000},
             {0.741, 0.717, 0.314},
             {0.000, 0.500, 0.500}
+    };
+
+    const std::vector<std::vector<unsigned int>> KPS_COLORS = {
+            {0, 255, 0},
+            {0, 255, 0},
+            {0, 255, 0},
+            {0, 255, 0},
+            {0, 255, 0},
+            {255, 128, 0},
+            {255, 128, 0},
+            {255, 128, 0},
+            {255, 128, 0},
+            {255, 128, 0},
+            {255, 128, 0},
+            {51, 153, 255},
+            {51, 153, 255},
+            {51, 153, 255},
+            {51, 153, 255},
+            {51, 153, 255},
+            {51, 153, 255}
+    };
+
+    const std::vector<std::vector<unsigned int>> SKELETON = {
+            {16, 14},
+            {14, 12},
+            {17, 15},
+            {15, 13},
+            {12, 13},
+            {6, 12},
+            {7, 13},
+            {6, 7},
+            {6, 8},
+            {7, 9},
+            {8, 10},
+            {9, 11},
+            {2, 3},
+            {1, 2},
+            {1, 3},
+            {2, 4},
+            {3, 5},
+            {4, 6},
+            {5, 7}
+    };
+
+    const std::vector<std::vector<unsigned int>> LIMB_COLORS = {
+            {51, 153, 255},
+            {51, 153, 255},
+            {51, 153, 255},
+            {51, 153, 255},
+            {255, 51, 255},
+            {255, 51, 255},
+            {255, 51, 255},
+            {255, 128, 0},
+            {255, 128, 0},
+            {255, 128, 0},
+            {255, 128, 0},
+            {255, 128, 0},
+            {0, 255, 0},
+            {0, 255, 0},
+            {0, 255, 0},
+            {0, 255, 0},
+            {0, 255, 0},
+            {0, 255, 0},
+            {0, 255, 0}
     };
 };

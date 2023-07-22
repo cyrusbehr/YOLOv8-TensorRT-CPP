@@ -9,7 +9,9 @@ YoloV8::YoloV8(const std::string& onnxModelPath, const YoloV8Config& config)
         , SEG_H(config.segH)
         , SEG_W(config.segW)
         , SEGMENTATION_THRESHOLD(config.segmentationThreshold)
-        , CLASS_NAMES(config.classNames) {
+        , CLASS_NAMES(config.classNames)
+        , NUM_KPS(config.numKPS)
+        , KPS_THRESHOLD(config.kpsThreshold) {
     // Specify options for GPU inference
     Options options;
     options.optBatchSize = 1;
@@ -99,11 +101,22 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
     std::vector<Object> ret;
     const auto& numOutputs = m_trtEngine->getOutputDims().size();
     if (numOutputs == 1) {
-        // Only object detection
+        // Object detection or pose estimation
         // Since we have a batch size of 1 and only 1 output, we must convert the output from a 3D array to a 1D array.
         std::vector<float> featureVector;
         Engine::transformOutput(featureVectors, featureVector);
-        ret = postprocess(featureVector);
+
+        const auto& outputDims = m_trtEngine->getOutputDims();
+        int numChannels = outputDims[outputDims.size() - 1].d[1];
+        // TODO: Need to improve this to make it more generic (don't use magic number).
+        // For now it works with Ultralytics pretrained models.
+        if (numChannels == 56) {
+            // Pose estimation
+            ret = postprocessPose(featureVector);
+        } else {
+            // Object detection
+            ret = postprocessDetect(featureVector);
+        }
     } else {
         // Segmentation
         // Since we have a batch size of 1 and 2 outputs, we must convert the output from a 3D array to a 2D array.
@@ -255,7 +268,88 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
     return objs;
 }
 
-std::vector<Object> YoloV8::postprocess(std::vector<float> &featureVector) {
+std::vector<Object> YoloV8::postprocessPose(std::vector<float> &featureVector) {
+    const auto& outputDims = m_trtEngine->getOutputDims();
+    auto numChannels = outputDims[0].d[1];
+    auto numAnchors = outputDims[0].d[2];
+
+    std::vector<cv::Rect> bboxes;
+    std::vector<float> scores;
+    std::vector<int> labels;
+    std::vector<int> indices;
+    std::vector<std::vector<float>> kpss;
+
+    cv::Mat output = cv::Mat(numChannels, numAnchors, CV_32F, featureVector.data());
+    output = output.t();
+
+    // Get all the YOLO proposals
+    for (int i = 0; i < numAnchors; i++) {
+        auto rowPtr = output.row(i).ptr<float>();
+        auto bboxesPtr = rowPtr;
+        auto scoresPtr = rowPtr + 4;
+        auto kps_ptr = rowPtr + 5;
+        float score = *scoresPtr;
+        if (score > PROBABILITY_THRESHOLD) {
+            float x = *bboxesPtr++;
+            float y = *bboxesPtr++;
+            float w = *bboxesPtr++;
+            float h = *bboxesPtr;
+
+            float x0 = std::clamp((x - 0.5f * w) * m_ratio, 0.f, m_imgWidth);
+            float y0 = std::clamp((y - 0.5f * h) * m_ratio, 0.f, m_imgHeight);
+            float x1 = std::clamp((x + 0.5f * w) * m_ratio, 0.f, m_imgWidth);
+            float y1 = std::clamp((y + 0.5f * h) * m_ratio, 0.f, m_imgHeight);
+
+            cv::Rect_<float> bbox;
+            bbox.x = x0;
+            bbox.y = y0;
+            bbox.width = x1 - x0;
+            bbox.height = y1 - y0;
+
+            std::vector<float> kps;
+            for (int k = 0; k < NUM_KPS; k++) {
+                float kpsX = *(kps_ptr + 3 * k) * m_ratio;
+                float kpsY = *(kps_ptr + 3 * k + 1) * m_ratio;
+                float kpsS = *(kps_ptr + 3 * k + 2);
+                kpsX       = std::clamp(kpsX, 0.f, m_imgWidth);
+                kpsY       = std::clamp(kpsY, 0.f, m_imgHeight);
+                kps.push_back(kpsX);
+                kps.push_back(kpsY);
+                kps.push_back(kpsS);
+            }
+
+            bboxes.push_back(bbox);
+            labels.push_back(0); // All detected objects are people
+            scores.push_back(score);
+            kpss.push_back(kps);
+        }
+    }
+
+    // Run NMS
+    cv::dnn::NMSBoxesBatched(bboxes, scores, labels, PROBABILITY_THRESHOLD, NMS_THRESHOLD, indices);
+
+    std::vector<Object> objects;
+
+    // Choose the top k detections
+    int cnt = 0;
+    for (auto& chosenIdx : indices) {
+        if (cnt >= TOP_K) {
+            break;
+        }
+
+        Object obj{};
+        obj.probability = scores[chosenIdx];
+        obj.label = labels[chosenIdx];
+        obj.rect = bboxes[chosenIdx];
+        obj.kps = kpss[chosenIdx];
+        objects.push_back(obj);
+
+        cnt += 1;
+    }
+
+    return objects;}
+
+std::vector<Object> YoloV8::postprocessDetect(std::vector<float> &featureVector) {
     const auto& outputDims = m_trtEngine->getOutputDims();
     auto numChannels = outputDims[0].d[1];
     auto numAnchors = outputDims[0].d[2];
@@ -302,7 +396,7 @@ std::vector<Object> YoloV8::postprocess(std::vector<float> &featureVector) {
     }
 
     // Run NMS
-    cv::dnn::NMSBoxes(bboxes, scores, PROBABILITY_THRESHOLD, NMS_THRESHOLD, indices);
+    cv::dnn::NMSBoxesBatched(bboxes, scores, labels, PROBABILITY_THRESHOLD, NMS_THRESHOLD, indices);
 
     std::vector<Object> objects;
 
@@ -378,5 +472,35 @@ void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects
                       txt_bk_color, -1);
 
         cv::putText(image, text, cv::Point(x, y + labelSize.height), cv::FONT_HERSHEY_SIMPLEX, 0.35 * scale, txtColor, scale);
+
+        // Pose estimation
+        if (!object.kps.empty()) {
+            auto& kps = object.kps;
+            for (int k = 0; k < NUM_KPS + 2; k++) {
+                if (k < NUM_KPS) {
+                    int   kpsX = std::round(kps[k * 3]);
+                    int   kpsY = std::round(kps[k * 3 + 1]);
+                    float kpsS = kps[k * 3 + 2];
+                    if (kpsS > KPS_THRESHOLD) {
+                        cv::Scalar kpsColor = cv::Scalar(KPS_COLORS[k][0], KPS_COLORS[k][1], KPS_COLORS[k][2]);
+                        cv::circle(image, {kpsX, kpsY}, 5, kpsColor, -1);
+                    }
+                }
+                auto& ske    = SKELETON[k];
+                int   pos1X = std::round(kps[(ske[0] - 1) * 3]);
+                int   pos1Y = std::round(kps[(ske[0] - 1) * 3 + 1]);
+
+                int pos2X = std::round(kps[(ske[1] - 1) * 3]);
+                int pos2Y = std::round(kps[(ske[1] - 1) * 3 + 1]);
+
+                float pos1S = kps[(ske[0] - 1) * 3 + 2];
+                float pos2S = kps[(ske[1] - 1) * 3 + 2];
+
+                if (pos1S > KPS_THRESHOLD && pos2S > KPS_THRESHOLD) {
+                    cv::Scalar limb_color = cv::Scalar(LIMB_COLORS[k][0], LIMB_COLORS[k][1], LIMB_COLORS[k][2]);
+                    cv::line(image, {pos1X, pos1Y}, {pos2X, pos2Y}, limb_color, 2);
+                }
+            }
+        }
     }
 }
