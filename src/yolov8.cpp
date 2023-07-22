@@ -26,7 +26,7 @@ YoloV8::YoloV8(const std::string& onnxModelPath, const YoloV8Config& config)
     // Build the onnx model into a TensorRT engine file
     // If the engine file already exists, this function will return immediately
     // The engine file is rebuilt any time the above Options are changed.
-    auto succ = m_trtEngine->build(onnxModelPath);
+    auto succ = m_trtEngine->build(onnxModelPath, SUB_VALS, DIV_VALS, NORMALIZE);
     if (!succ) {
         const std::string errMsg = "Error: Unable to build the TensorRT engine. "
                                    "Try increasing TensorRT log severity to kVERBOSE (in /libs/tensorrt-cpp-api/engine.cpp).";
@@ -87,7 +87,7 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
     preciseStopwatch s2;
 #endif
     std::vector<std::vector<std::vector<float>>> featureVectors;
-    auto succ = m_trtEngine->runInference(input, featureVectors, SUB_VALS, DIV_VALS, NORMALIZE);
+    auto succ = m_trtEngine->runInference(input, featureVectors);
     if (!succ) {
         throw std::runtime_error("Error: Unable to run inference.");
     }
