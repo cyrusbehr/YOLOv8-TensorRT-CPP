@@ -28,8 +28,6 @@
 This project demonstrates how to use the TensorRT C++ API to run GPU inference for YoloV8. 
 It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr/tensorrt-cpp-api) to run inference behind the scene, so make sure you are familiar with that project.
 
-**New**: Now supports YoloV8 Semantic Segmentation models. 
-
 ### Prerequisites
 - Tested and working on Ubuntu 20.04
 - Install CUDA, instructions [here](https://developer.nvidia.com/cuda-11-8-0-download-archive).
