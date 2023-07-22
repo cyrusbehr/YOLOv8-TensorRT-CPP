@@ -91,7 +91,7 @@ TODO: Need to improve postprocessing time.
 ### Show your appreciation
 If this project was helpful to you, I would appreicate if you could give it a star. That will encourage me to ensure it's up to date and solve issues quickly.
 
-## Contributors
+### Contributors
 
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
