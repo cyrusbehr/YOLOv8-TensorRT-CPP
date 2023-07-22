@@ -17,8 +17,14 @@ YoloV8::YoloV8(const std::string& onnxModelPath, const YoloV8Config& config)
     options.optBatchSize = 1;
     options.maxBatchSize = 1;
 
-    // Use FP16 precision to speed up inference
-    options.precision = Precision::FP16;
+    options.precision = config.precision;
+    options.calibrationDataDirectoryPath = config.calibrationDataDirectory;
+
+    if (options.precision == Precision::INT8) {
+        if (options.calibrationDataDirectoryPath.empty()) {
+            throw std::runtime_error("Error: Must supply calibration data path for INT8 calibration");
+        }
+    }
 
     // Create our TensorRT inference engine
     m_trtEngine = std::make_unique<Engine>(options);

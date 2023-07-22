@@ -24,6 +24,10 @@ struct Object {
 // Config the behavior of the YoloV8 detector.
 // Can pass these arguments as command line parameters.
 struct YoloV8Config {
+    // The precision to be used for inference
+    Precision precision = Precision::FP16;
+    // Calibration data directory. Must be specified when using INT8 precision.
+    std::string calibrationDataDirectory;
     // Probability threshold used to filter detected objects
     float probabilityThreshold = 0.25f;
     // Non-maximum suppression threshold

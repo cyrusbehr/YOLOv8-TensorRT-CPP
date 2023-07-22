@@ -76,6 +76,13 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 - To run inference using your webcam and display the results in real time, run: `./detect_object_video --model /path/to/your/onnx/model.onnx --input 0`
 - For a full list of arguments, run any of the executables without providing any arguments.
 
+### INT8 Inference
+Enabling INT8 precision can further speed up inference at the cost of accuracy reduction due to reduced dynamic range.
+For INT8 precision, calibration data must be supplied which is representative of real data the model will see.
+It is advised to use 1K+ calibration images. To enable INT8 inference with the YoloV8 sanity check model, the following steps must be taken:
+- Download and extract the COCO validation dataset, or procure data representative of your inference data: `wget http://images.cocodataset.org/zips/val2017.zip`
+- Provide the additional command line arguments when running the executables: `--precision INT8 --calibration-data /path/to/your/calibration/data`
+
 ### Benchmarking
 - Before running benchmarks, ensure your GPU is unloaded. 
 - Run the executable `benchmark` using the `/images/640_640.jpg` image. 

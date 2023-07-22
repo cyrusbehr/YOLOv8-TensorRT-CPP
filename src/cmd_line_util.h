@@ -7,7 +7,9 @@ inline void showHelp(char* argv[]) {
 
     std::cout << "Options:" << std::endl;
     std::cout << "--model <string>                  Path to the ONNX model. (Mandatory)" << std::endl;
-    std::cout << "--input <string || int>           Input source for detection. Accepts a path to an image file. (Mandatory)" << std::endl;
+    std::cout << "--input <string || int>           Input source for detection. Accepts a path to an image file. For video detection, must be path to video source, or video index. (Mandatory)" << std::endl;
+    std::cout << "--precision <string>              Precision to be used for inference. Options include FP32, FP16, and INT8 (Default: FP16)" << std::endl;
+    std::cout << "--calibration-data <string>       Path to calibration data. (Mandatory if precision is INT8)" << std::endl;
     std::cout << "--prob-threshold <float>          Sets the probability threshold for object detection. Objects with confidence scores lower than this value will be ignored. (Default: 0.25)" << std::endl;
     std::cout << "--nms-threshold <float>           Sets the Non-Maximum Suppression (NMS) threshold. NMS is used to eliminate duplicate and overlapping detections. (Default: 0.65)" << std::endl;
     std::cout << "--top-k <int>                     Sets the maximum number of top-scoring objects to be displayed by the detector. (Default: 100)" << std::endl;
@@ -18,7 +20,7 @@ inline void showHelp(char* argv[]) {
     std::cout << "--class-names <string list>       Sets the names of object classes to be recognized by the detector. Provide the class names separated by spaces. (Default: COCO class names)" << std::endl << std::endl;
 
     std::cout << "Example usage:" << std::endl;
-    std::cout << argv[0] << " --model model.onnx --input image.png --prob-threshold 0.3 --nms-threshold 0.5 --top-k 50 --seg-channels 64 --seg-h 192 --seg-w 192 --seg-threshold 0.4 --class-names cat dog car person" << std::endl;
+    std::cout << argv[0] << " --model model.onnx --input image.png --precision FP16 --calibration-data /data/coco/validation/ --prob-threshold 0.3 --nms-threshold 0.5 --top-k 50 --seg-channels 64 --seg-h 192 --seg-w 192 --seg-threshold 0.4 --class-names cat dog car person" << std::endl;
 }
 
 inline bool tryGetNextArgument(int argc, char* argv[], int& currentIndex, std::string& value, std::string flag, bool printErrors = true) {
@@ -151,6 +153,34 @@ inline bool parseArguments(int argc, char* argv[], YoloV8Config& config, std::st
                     return false;
 
                 config.segH = value;
+            }
+
+            else if (flag == "precision") {
+                if (!tryGetNextArgument(argc, argv, i, nextArgument, flag))
+                    return false;
+
+                if (nextArgument == "FP32") {
+                    config.precision = Precision::FP32;
+                } else if (nextArgument == "FP16") {
+                    config.precision = Precision::FP16;
+                } else if (nextArgument == "INT8") {
+                    config.precision = Precision::INT8;
+                } else {
+                    std::cout << "Error: Unexpected precision value: " << nextArgument << ", options are FP32, FP16, INT8" << std::endl;
+                    return false;
+                }
+            }
+
+            else if (flag == "calibration-data") {
+                if (!tryGetNextArgument(argc, argv, i, nextArgument, flag))
+                    return false;
+
+                if (!doesFileExist(nextArgument)) {
+                    std::cout << "Error: Calibration data at specified path does not exist: " << nextArgument << std::endl;
+                    return false;
+                }
+
+                config.calibrationDataDirectory = nextArgument;
             }
 
             else if (flag == "seg-w") {
@@ -300,6 +330,34 @@ inline bool parseArgumentsVideo(int argc, char* argv[], YoloV8Config& config, st
                     return false;
 
                 config.segH = value;
+            }
+
+            else if (flag == "precision") {
+                if (!tryGetNextArgument(argc, argv, i, nextArgument, flag))
+                    return false;
+
+                if (nextArgument == "FP32") {
+                    config.precision = Precision::FP32;
+                } else if (nextArgument == "FP16") {
+                    config.precision = Precision::FP16;
+                } else if (nextArgument == "INT8") {
+                    config.precision = Precision::INT8;
+                } else {
+                    std::cout << "Error: Unexpected precision value: " << nextArgument << ", options are FP32, FP16, INT8" << std::endl;
+                    return false;
+                }
+            }
+
+            else if (flag == "calibration-data") {
+                if (!tryGetNextArgument(argc, argv, i, nextArgument, flag))
+                    return false;
+
+                if (!doesFileExist(nextArgument)) {
+                    std::cout << "Error: Calibration data at specified path does not exist: " << nextArgument << std::endl;
+                    return false;
+                }
+
+                config.calibrationDataDirectory = nextArgument;
             }
 
             else if (flag == "seg-w") {
