@@ -11,6 +11,8 @@
     <b>
     A C++ Implementation of YoloV8 using TensorRT
     </b>
+    <br/>
+    Supports object detection, semantic segmentation, and body pose estimation.
 </p>
 <p align="center">
   <a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP">
