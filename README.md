@@ -1,6 +1,7 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
+[![All Contributors](https://img.shields.io/github/all-contributors/cyrusbehr/YOLOv8-TensorRT-CPP?color=ee8449&style=flat-square)](#contributors)
 
 
 <!-- PROJECT LOGO -->
@@ -96,6 +97,20 @@ If this project was helpful to you, I would appreicate if you could give it a st
 <!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
 <!-- prettier-ignore-start -->
 <!-- markdownlint-disable -->
+<table>
+  <tbody>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/z3lx"><img src="https://avatars.githubusercontent.com/u/57017122?v=4?s=100" width="100px;" alt="z3lx"/><br /><sub><b>z3lx</b></sub></a><br /><a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP/commits?author=z3lx" title="Code">💻</a></td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
 
 <!-- markdownlint-restore -->
 <!-- prettier-ignore-end -->
@@ -110,3 +125,4 @@ If this project was helpful to you, I would appreicate if you could give it a st
 [issues-url]: https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP/issues
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=flat-square&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/cyrus-behroozi/
+
