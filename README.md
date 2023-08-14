@@ -82,6 +82,7 @@ For INT8 precision, calibration data must be supplied which is representative of
 It is advised to use 1K+ calibration images. To enable INT8 inference with the YoloV8 sanity check model, the following steps must be taken:
 - Download and extract the COCO validation dataset, or procure data representative of your inference data: `wget http://images.cocodataset.org/zips/val2017.zip`
 - Provide the additional command line arguments when running the executables: `--precision INT8 --calibration-data /path/to/your/calibration/data`
+- If you get an "out of memory in function allocate" error, then you must reduce `Options.calibrationBatchSize` so that the entire batch can fit in your GPU memory.
 
 ### Benchmarking
 - Before running benchmarks, ensure your GPU is unloaded. 
