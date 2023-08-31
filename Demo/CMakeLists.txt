@@ -1,0 +1,10 @@
+set(Target YOLOv8_TensorRT_CPP_Demo)
+
+add_executable(detect_object_image object_detection_image.cpp)
+target_link_libraries(detect_object_image YOLOv8_TensorRT_CPP)
+
+add_executable(detect_object_video object_detection_video_stream.cpp)
+target_link_libraries(detect_object_video YOLOv8_TensorRT_CPP)
+
+add_executable(benchmark benchmark.cpp)
+target_link_libraries(benchmark YOLOv8_TensorRT_CPP)
