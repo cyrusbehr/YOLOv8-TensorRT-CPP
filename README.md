@@ -79,15 +79,11 @@ It is advised to use 1K+ calibration images. To enable INT8 inference with the Y
 - If you'd like to benchmark each component (`preprocess`, `inference`, `postprocess`), recompile setting the `ENABLE_BENCHMARKS` flag to `ON`: `cmake -DENABLE_BENCHMARKS=ON ..`.
   - You can then rerun the executable
 
-Benchmarks run on RTX 3050 Ti Laptop GPU, 11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz using 640x640 BGR image in GPU memory and FP16 precision. 
+Benchmarks run on Jetson-TX2 p3310-1000.
 
-| Model        | Total Time | Preprocess Time | Inference Time | Postprocess Time |
-|--------------|------------|-----------------|----------------|------------------|
-| yolov8n      | 3.753 ms   | 0.084 ms        | 2.625 ms       | 1.013 ms         |
-| yolov8n-pose | 2.992 ms   | 0.084 ms        | 2.571 ms       | 0.315 ms         |
-| yolov8n-seg  | 15.309 ms  | 0.110 ms        | 4.305 ms       | 10.792 ms        |
-
-TODO: Need to improve postprocessing time. 
+| Model   | Precision | Batch Size | Avg Inference Time |
+|---------|-----------|------------|--------------------|
+| yolov8n | FP16      | 1          | 37.258 ms          |
 
 ### How to debug
 - If you have issues creating the TensorRT engine file from the onnx model, navigate to `libs/tensorrt-cpp-api/src/engine.cpp` and change the log level by changing the severity level to `kVERBOSE` and rebuild and rerun. This should give you more information on where exactly the build process is failing.
