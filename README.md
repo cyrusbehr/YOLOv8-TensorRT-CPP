@@ -31,21 +31,8 @@
 This project demonstrates how to use the TensorRT C++ API to run GPU inference for YoloV8. 
 It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr/tensorrt-cpp-api) to run inference behind the scene, so make sure you are familiar with that project.
 
-### Prerequisites
-- Tested and working on Ubuntu 20.04
-- Install CUDA, instructions [here](https://developer.nvidia.com/cuda-11-8-0-download-archive).
-  - Recommended >= 11.8 
-- Install cudnn, instructions [here](https://docs.nvidia.com/deeplearning/cudnn/install-guide/index.html#download).
-  - Recommended >= 8
-- `sudo apt install build-essential`
-- `sudo apt install python3-pip`
-- `pip3 install cmake`
-- Install OpenCV with cuda support. To compile OpenCV from source, run the `build_opencv.sh` script provided in `./scripts/`
-  - Recommended >= 4.8
-- Download TensorRT 8 from [here](https://developer.nvidia.com/nvidia-tensorrt-8x-download).
-  - Recommended >= 8.6
-  - Required >= 8.0
-- Extract, and then navigate to the `CMakeLists.txt` file and replace the `TODO` with the path to your TensorRT installation.
+### Jetson-TX2 Prerequisites
+Please check [tensorrt-cpp-api documentation](https://github.com/ltetrel/tensorrt-cpp-api/tree/feat/jetson-tx2#jetson-tx2-prerequisites) instead.
 
 
 ### Installation
@@ -53,6 +40,8 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 - **Note:** Be sure to use the `--recursive` flag as this repo makes use of git submodules. 
 
 ### Converting Model from PyTorch to ONNX
+> **Note**:
+> It is recommended to do the following steps outside of the Jetson-TX2, on your own desktop for example. Then you can transfer the exported ONNX model on the jetson.
 - Navigate to the [official YoloV8 repository](https://github.com/ultralytics/ultralytics) and download your desired version of the model (ex. YOLOv8x).
   - The code also supports semantic segmentation models out of the box (ex. YOLOv8x-seg) and pose estimation models (ex. yolov8x-pose.onnx).
 - `pip3 install ultralytics`
