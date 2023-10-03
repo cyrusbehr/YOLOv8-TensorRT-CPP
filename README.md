@@ -36,7 +36,7 @@ Please check [tensorrt-cpp-api documentation](https://github.com/ltetrel/tensorr
 
 
 ### Installation
-- `git clone https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP --recursive`
+- `git clone git@github.com:ltetrel/YOLOv8-TensorRT-CPP.git -b feat/jetson-tx2 --recursive`
 - **Note:** Be sure to use the `--recursive` flag as this repo makes use of git submodules. 
 
 ### Converting Model from PyTorch to ONNX
