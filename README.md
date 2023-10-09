@@ -32,11 +32,11 @@ This project demonstrates how to use the TensorRT C++ API to run GPU inference f
 It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr/tensorrt-cpp-api) to run inference behind the scene, so make sure you are familiar with that project.
 
 ### Jetson-TX2 Prerequisites
-Please check [tensorrt-cpp-api documentation](https://github.com/ltetrel/tensorrt-cpp-api/tree/feat/jetson-tx2#jetson-tx2-prerequisites) instead.
+Please check [tensorrt-cpp-api documentation](https://github.com/cyrusbehr/tensorrt-cpp-api/tree/feat/jetson-tx2#jetson-tx2-prerequisites) instead.
 
 
 ### Installation
-- `git clone https://github.com/ltetrel/YOLOv8-TensorRT-CPP.git -b feat/jetson-tx2 --recursive`
+- `git clone https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP.git -b feat/jetson-tx2 --recursive`
 - **Note:** Be sure to use the `--recursive` flag as this repo makes use of git submodules. 
 
 ### Converting Model from PyTorch to ONNX
