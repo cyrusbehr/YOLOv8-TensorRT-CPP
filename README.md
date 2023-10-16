@@ -31,28 +31,17 @@
 This project demonstrates how to use the TensorRT C++ API to run GPU inference for YoloV8. 
 It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr/tensorrt-cpp-api) to run inference behind the scene, so make sure you are familiar with that project.
 
-### Prerequisites
-- Tested and working on Ubuntu 20.04
-- Install CUDA, instructions [here](https://developer.nvidia.com/cuda-11-8-0-download-archive).
-  - Recommended >= 11.8 
-- Install cudnn, instructions [here](https://docs.nvidia.com/deeplearning/cudnn/install-guide/index.html#download).
-  - Recommended >= 8
-- `sudo apt install build-essential`
-- `sudo apt install python3-pip`
-- `pip3 install cmake`
-- Install OpenCV with cuda support. To compile OpenCV from source, run the `build_opencv.sh` script provided in `./scripts/`
-  - Recommended >= 4.8
-- Download TensorRT 8 from [here](https://developer.nvidia.com/nvidia-tensorrt-8x-download).
-  - Recommended >= 8.6
-  - Required >= 8.0
-- Extract, and then navigate to the `CMakeLists.txt` file and replace the `TODO` with the path to your TensorRT installation.
+### Jetson-TX2 Prerequisites
+Please check [tensorrt-cpp-api documentation](https://github.com/cyrusbehr/tensorrt-cpp-api/tree/feat/jetson-tx2#jetson-tx2-prerequisites) instead.
 
 
 ### Installation
-- `git clone https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP --recursive`
+- `git clone https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP.git -b feat/jetson-tx2 --recursive`
 - **Note:** Be sure to use the `--recursive` flag as this repo makes use of git submodules. 
 
 ### Converting Model from PyTorch to ONNX
+> **Note**:
+> It is recommended to do the following steps outside of the Jetson-TX2, on your own desktop for example. Then you can transfer the exported ONNX model on the jetson.
 - Navigate to the [official YoloV8 repository](https://github.com/ultralytics/ultralytics) and download your desired version of the model (ex. YOLOv8x).
   - The code also supports semantic segmentation models out of the box (ex. YOLOv8x-seg) and pose estimation models (ex. yolov8x-pose.onnx).
 - `pip3 install ultralytics`
@@ -82,6 +71,7 @@ For INT8 precision, calibration data must be supplied which is representative of
 It is advised to use 1K+ calibration images. To enable INT8 inference with the YoloV8 sanity check model, the following steps must be taken:
 - Download and extract the COCO validation dataset, or procure data representative of your inference data: `wget http://images.cocodataset.org/zips/val2017.zip`
 - Provide the additional command line arguments when running the executables: `--precision INT8 --calibration-data /path/to/your/calibration/data`
+- If you get an "out of memory in function allocate" error, then you must reduce `Options.calibrationBatchSize` so that the entire batch can fit in your GPU memory.
 
 ### Benchmarking
 - Before running benchmarks, ensure your GPU is unloaded. 
@@ -89,15 +79,11 @@ It is advised to use 1K+ calibration images. To enable INT8 inference with the Y
 - If you'd like to benchmark each component (`preprocess`, `inference`, `postprocess`), recompile setting the `ENABLE_BENCHMARKS` flag to `ON`: `cmake -DENABLE_BENCHMARKS=ON ..`.
   - You can then rerun the executable
 
-Benchmarks run on RTX 3050 Ti Laptop GPU, 11th Gen Intel(R) Core(TM) i9-11900H @ 2.50GHz using 640x640 BGR image in GPU memory and FP16 precision. 
+Benchmarks run on Jetson-TX2 p3310-1000.
 
-| Model        | Total Time | Preprocess Time | Inference Time | Postprocess Time |
-|--------------|------------|-----------------|----------------|------------------|
-| yolov8n      | 3.753 ms   | 0.084 ms        | 2.625 ms       | 1.013 ms         |
-| yolov8n-pose | 2.992 ms   | 0.084 ms        | 2.571 ms       | 0.315 ms         |
-| yolov8n-seg  | 15.309 ms  | 0.110 ms        | 4.305 ms       | 10.792 ms        |
-
-TODO: Need to improve postprocessing time. 
+| Model   | Precision | Batch Size | Avg Inference Time |
+|---------|-----------|------------|--------------------|
+| yolov8n | FP16      | 1          | 37.258 ms          |
 
 ### How to debug
 - If you have issues creating the TensorRT engine file from the onnx model, navigate to `libs/tensorrt-cpp-api/src/engine.cpp` and change the log level by changing the severity level to `kVERBOSE` and rebuild and rerun. This should give you more information on where exactly the build process is failing.

@@ -8,6 +8,11 @@ inline bool doesFileExist (const std::string& name) {
     return f.good();
 }
 
+template <typename T>
+constexpr const T& clamp(const T& x, const T& lower, const T& upper) {
+  return std::max(lower, std::min(x, upper));
+};
+
 struct Object {
     // The object class.
     int label{};

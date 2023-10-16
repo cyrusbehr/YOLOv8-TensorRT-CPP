@@ -1,3 +1,4 @@
 [submodule "libs/tensorrt-cpp-api"]
 	path = libs/tensorrt-cpp-api
 	url = https://github.com/cyrusbehr/tensorrt-cpp-api.git
+	branch = feat/jetson-tx2

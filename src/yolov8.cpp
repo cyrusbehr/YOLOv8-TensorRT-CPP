@@ -189,10 +189,10 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
             float w = *bboxesPtr++;
             float h = *bboxesPtr;
 
-            float x0 = std::clamp((x - 0.5f * w) * m_ratio, 0.f, m_imgWidth);
-            float y0 = std::clamp((y - 0.5f * h) * m_ratio, 0.f, m_imgHeight);
-            float x1 = std::clamp((x + 0.5f * w) * m_ratio, 0.f, m_imgWidth);
-            float y1 = std::clamp((y + 0.5f * h) * m_ratio, 0.f, m_imgHeight);
+            float x0 = clamp((x - 0.5f * w) * m_ratio, 0.f, m_imgWidth);
+            float y0 = clamp((y - 0.5f * h) * m_ratio, 0.f, m_imgHeight);
+            float x1 = clamp((x + 0.5f * w) * m_ratio, 0.f, m_imgWidth);
+            float y1 = clamp((y + 0.5f * h) * m_ratio, 0.f, m_imgHeight);
 
             int label = maxSPtr - scoresPtr;
             cv::Rect_<float> bbox;
@@ -301,10 +301,10 @@ std::vector<Object> YoloV8::postprocessPose(std::vector<float> &featureVector) {
             float w = *bboxesPtr++;
             float h = *bboxesPtr;
 
-            float x0 = std::clamp((x - 0.5f * w) * m_ratio, 0.f, m_imgWidth);
-            float y0 = std::clamp((y - 0.5f * h) * m_ratio, 0.f, m_imgHeight);
-            float x1 = std::clamp((x + 0.5f * w) * m_ratio, 0.f, m_imgWidth);
-            float y1 = std::clamp((y + 0.5f * h) * m_ratio, 0.f, m_imgHeight);
+            float x0 = clamp((x - 0.5f * w) * m_ratio, 0.f, m_imgWidth);
+            float y0 = clamp((y - 0.5f * h) * m_ratio, 0.f, m_imgHeight);
+            float x1 = clamp((x + 0.5f * w) * m_ratio, 0.f, m_imgWidth);
+            float y1 = clamp((y + 0.5f * h) * m_ratio, 0.f, m_imgHeight);
 
             cv::Rect_<float> bbox;
             bbox.x = x0;
@@ -317,8 +317,8 @@ std::vector<Object> YoloV8::postprocessPose(std::vector<float> &featureVector) {
                 float kpsX = *(kps_ptr + 3 * k) * m_ratio;
                 float kpsY = *(kps_ptr + 3 * k + 1) * m_ratio;
                 float kpsS = *(kps_ptr + 3 * k + 2);
-                kpsX       = std::clamp(kpsX, 0.f, m_imgWidth);
-                kpsY       = std::clamp(kpsY, 0.f, m_imgHeight);
+                kpsX       = clamp(kpsX, 0.f, m_imgWidth);
+                kpsY       = clamp(kpsY, 0.f, m_imgHeight);
                 kps.push_back(kpsX);
                 kps.push_back(kpsY);
                 kps.push_back(kpsS);
@@ -383,10 +383,10 @@ std::vector<Object> YoloV8::postprocessDetect(std::vector<float> &featureVector)
             float w = *bboxesPtr++;
             float h = *bboxesPtr;
 
-            float x0 = std::clamp((x - 0.5f * w) * m_ratio, 0.f, m_imgWidth);
-            float y0 = std::clamp((y - 0.5f * h) * m_ratio, 0.f, m_imgHeight);
-            float x1 = std::clamp((x + 0.5f * w) * m_ratio, 0.f, m_imgWidth);
-            float y1 = std::clamp((y + 0.5f * h) * m_ratio, 0.f, m_imgHeight);
+            float x0 = clamp((x - 0.5f * w) * m_ratio, 0.f, m_imgWidth);
+            float y0 = clamp((y - 0.5f * h) * m_ratio, 0.f, m_imgHeight);
+            float x1 = clamp((x + 0.5f * w) * m_ratio, 0.f, m_imgWidth);
+            float y1 = clamp((y + 0.5f * h) * m_ratio, 0.f, m_imgHeight);
 
             int label = maxSPtr - scoresPtr;
             cv::Rect_<float> bbox;
