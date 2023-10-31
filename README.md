@@ -40,7 +40,7 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 - `sudo apt install build-essential`
 - `sudo apt install python3-pip`
 - `pip3 install cmake`
-- Install OpenCV with cuda support. To compile OpenCV from source, run the `build_opencv.sh` script provided in `./scripts/`
+- Install OpenCV with cuda support. To compile OpenCV from source, run the `build_opencv.sh` script provided [here](https://github.com/cyrusbehr/tensorrt-cpp-api/blob/ec6a7529a792b2a9b1ab466f2d0e2da5df47543d/scripts/build_opencv.sh).
   - Recommended >= 4.8
 - Download TensorRT 8 from [here](https://developer.nvidia.com/nvidia-tensorrt-8x-download).
   - Recommended >= 8.6
