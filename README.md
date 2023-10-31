@@ -82,6 +82,7 @@ For INT8 precision, calibration data must be supplied which is representative of
 It is advised to use 1K+ calibration images. To enable INT8 inference with the YoloV8 sanity check model, the following steps must be taken:
 - Download and extract the COCO validation dataset, or procure data representative of your inference data: `wget http://images.cocodataset.org/zips/val2017.zip`
 - Provide the additional command line arguments when running the executables: `--precision INT8 --calibration-data /path/to/your/calibration/data`
+- If you get an "out of memory in function allocate" error, then you must reduce `Options.calibrationBatchSize` so that the entire batch can fit in your GPU memory.
 
 ### Benchmarking
 - Before running benchmarks, ensure your GPU is unloaded. 
@@ -114,6 +115,7 @@ If this project was helpful to you, I would appreicate if you could give it a st
   <tbody>
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/z3lx"><img src="https://avatars.githubusercontent.com/u/57017122?v=4?s=100" width="100px;" alt="z3lx"/><br /><sub><b>z3lx</b></sub></a><br /><a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP/commits?author=z3lx" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://ltetrel.github.io/"><img src="https://avatars.githubusercontent.com/u/37963074?v=4?s=100" width="100px;" alt="Loic Tetrel"/><br /><sub><b>Loic Tetrel</b></sub></a><br /><a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP/commits?author=ltetrel" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
