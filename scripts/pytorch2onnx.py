@@ -5,4 +5,4 @@ from ultralytics import YOLO
 model = YOLO("../models/yolov8x.pt")
 model.fuse()
 model.info(verbose=False)  # Print model information
-model.export(format="onnx", opset=12) # Export the model to onnx using opset 12
+model.export(format="onnx", simplify=True)
