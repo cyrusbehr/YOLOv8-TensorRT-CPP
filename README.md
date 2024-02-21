@@ -56,8 +56,8 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 - Navigate to the [official YoloV8 repository](https://github.com/ultralytics/ultralytics) and download your desired version of the model (ex. YOLOv8x).
   - The code also supports semantic segmentation models out of the box (ex. YOLOv8x-seg) and pose estimation models (ex. yolov8x-pose.onnx).
 - `pip3 install ultralytics`
-- Navigate to the `scripts/` directory and modify this line so that it points to your downloaded model: `model = YOLO("../models/yolov8m.pt")`.
-- `python3 pytorch2onnx.py`
+- Navigate to the `scripts/` directory and run the following:
+- ```python3 pytorch2onnx.py --pt_path <path to your pt file>```
 - After running this command, you should successfully have converted from PyTorch to ONNX.
 - **Note**: If converting the model using a different script, be sure that `end2end` is disabled. This flag will add bbox decoding and nms directly to the model, whereas my implementation does these steps external to the model using good old C++. 
 
