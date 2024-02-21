@@ -63,7 +63,7 @@ inline bool tryParseFloat(const std::string& s, float& value, const std::string&
     }
 }
 
-inline bool parseArguments(int argc, char* argv[], YoloV8Config& config, std::string& onnxModelPath, std::string& inputImage) {
+inline bool parseArguments(int argc, char* argv[], EngineOptions& engineOptions, YoloV8Config& config, std::string& onnxModelPath, std::string& inputImage) {
     if (argc == 1) {
         showHelp(argv);
         return false;
@@ -80,19 +80,18 @@ inline bool parseArguments(int argc, char* argv[], YoloV8Config& config, std::st
                 if (!tryGetNextArgument(argc, argv, i, nextArgument, flag))
                     return false;
 
-                if (!doesFileExist(nextArgument)) {
+                if (!EngineUtil::doesFileExist(nextArgument)) {
                     std::cout << "Error: Unable to find model at path '" << nextArgument << "' for flag '" << flag << "'" << std::endl;
                     return false;
                 }
 
                 onnxModelPath = nextArgument;
             }
-
             else if (flag == "input") {
                 if (!tryGetNextArgument(argc, argv, i, nextArgument, flag))
                     return false;
 
-                if (!doesFileExist(nextArgument)) {
+                if (!EngineUtil::doesFileExist(nextArgument)) {
                     std::cout << "Error: Unable to find image at path '" << nextArgument << "' for flag '" << flag << "'" << std::endl;
                     return false;
                 }
@@ -160,11 +159,11 @@ inline bool parseArguments(int argc, char* argv[], YoloV8Config& config, std::st
                     return false;
 
                 if (nextArgument == "FP32") {
-                    config.precision = Precision::FP32;
+                    engineOptions.precision = Precision::FP32;
                 } else if (nextArgument == "FP16") {
-                    config.precision = Precision::FP16;
+                    engineOptions.precision = Precision::FP16;
                 } else if (nextArgument == "INT8") {
-                    config.precision = Precision::INT8;
+                    engineOptions.precision = Precision::INT8;
                 } else {
                     std::cout << "Error: Unexpected precision value: " << nextArgument << ", options are FP32, FP16, INT8" << std::endl;
                     return false;
@@ -175,12 +174,12 @@ inline bool parseArguments(int argc, char* argv[], YoloV8Config& config, std::st
                 if (!tryGetNextArgument(argc, argv, i, nextArgument, flag))
                     return false;
 
-                if (!doesFileExist(nextArgument)) {
+                if (!EngineUtil::doseDirectoryExist(nextArgument)) {
                     std::cout << "Error: Calibration data at specified path does not exist: " << nextArgument << std::endl;
                     return false;
                 }
 
-                config.calibrationDataDirectory = nextArgument;
+                engineOptions.calibrationDataDirectoryPath = nextArgument;
             }
 
             else if (flag == "seg-w") {
@@ -245,7 +244,7 @@ inline bool parseArguments(int argc, char* argv[], YoloV8Config& config, std::st
     return true;
 }
 
-inline bool parseArgumentsVideo(int argc, char* argv[], YoloV8Config& config, std::string& onnxModelPath, std::string& inputVideo) {
+inline bool parseArgumentsVideo(int argc, char* argv[], EngineOptions& engineOptions, YoloV8Config& config, std::string& onnxModelPath, std::string& inputVideo) {
     if (argc == 1) {
         showHelp(argv);
         return false;
@@ -262,7 +261,7 @@ inline bool parseArgumentsVideo(int argc, char* argv[], YoloV8Config& config, st
                 if (!tryGetNextArgument(argc, argv, i, nextArgument, flag))
                     return false;
 
-                if (!doesFileExist(nextArgument)) {
+                if (!EngineUtil::doesFileExist(nextArgument)) {
                     std::cout << "Error: Unable to find model at path '" << nextArgument << "' for flag '" << flag << "'" << std::endl;
                     return false;
                 }
@@ -337,11 +336,11 @@ inline bool parseArgumentsVideo(int argc, char* argv[], YoloV8Config& config, st
                     return false;
 
                 if (nextArgument == "FP32") {
-                    config.precision = Precision::FP32;
+                    engineOptions.precision = Precision::FP32;
                 } else if (nextArgument == "FP16") {
-                    config.precision = Precision::FP16;
+                    engineOptions.precision = Precision::FP16;
                 } else if (nextArgument == "INT8") {
-                    config.precision = Precision::INT8;
+                    engineOptions.precision = Precision::INT8;
                 } else {
                     std::cout << "Error: Unexpected precision value: " << nextArgument << ", options are FP32, FP16, INT8" << std::endl;
                     return false;
@@ -352,12 +351,12 @@ inline bool parseArgumentsVideo(int argc, char* argv[], YoloV8Config& config, st
                 if (!tryGetNextArgument(argc, argv, i, nextArgument, flag))
                     return false;
 
-                if (!doesFileExist(nextArgument)) {
+                if (!EngineUtil::doesFileExist(nextArgument)) {
                     std::cout << "Error: Calibration data at specified path does not exist: " << nextArgument << std::endl;
                     return false;
                 }
 
-                config.calibrationDataDirectory = nextArgument;
+                engineOptions.calibrationDataDirectoryPath = nextArgument;
             }
 
             else if (flag == "seg-w") {

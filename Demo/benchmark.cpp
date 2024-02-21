@@ -2,20 +2,27 @@
 #include "cmd_line_util.h"
 #include <opencv2/cudaimgproc.hpp>
 
-
 // Benchmarks the specified model
 int main(int argc, char *argv[]) {
-    YoloV8Config config;
+    EngineOptions engineOptions;
+    YoloV8Config yoloV8Config;
     std::string onnxModelPath;
     std::string inputImage;
 
+    engineOptions.maxBatchSize = 1;
+
     // Parse the command line arguments
-	if (!parseArguments(argc, argv, config, onnxModelPath, inputImage)) {
+	if (!parseArguments(argc, argv, engineOptions, yoloV8Config, onnxModelPath, inputImage)) {
 		return -1;
     }
 
     // Create the YoloV8 engine
-    YoloV8 yoloV8(onnxModelPath, config);
+    YoloV8 yoloV8;
+    if (!yoloV8.loadEngine(onnxModelPath, engineOptions, yoloV8Config))
+    {
+        std::cout << "Error: Unable to load onnx model at path: " << onnxModelPath << std::endl;
+        return -1;
+    }
 
     // Read the input image
     auto img = cv::imread(inputImage);
@@ -33,8 +40,14 @@ int main(int argc, char *argv[]) {
     // Warm up the network
     std::cout << "Warming up the network..." << std::endl;
     size_t numIts = 50;
+    
     for (size_t i = 0; i < numIts; ++i) {
-        const auto objects = yoloV8.detectObjects(gpuImg);
+        std::vector<InferenceObject> inferenceObjects;
+        if (!yoloV8.infer(gpuImg, inferenceObjects))
+        {
+            std::cout << "Inference failure.";
+            return -1;
+        }
     }
 
     // Draw the bounding boxes on the image
@@ -42,7 +55,12 @@ int main(int argc, char *argv[]) {
     std::cout << "Warmup done. Running benchmarks (" << numIts << " iterations)..." << std::endl;
     preciseStopwatch stopwatch;
     for (size_t i = 0; i < numIts; ++i) {
-        const auto objects = yoloV8.detectObjects(gpuImg);
+        std::vector<InferenceObject> inferenceObjects;
+        if (!yoloV8.infer(gpuImg, inferenceObjects))
+        {
+            std::cout << "Inference failure.";
+            return -1;
+        }
     }
 
     auto totalElapsedTimeMs = stopwatch.elapsedTime<float, std::chrono::milliseconds>();

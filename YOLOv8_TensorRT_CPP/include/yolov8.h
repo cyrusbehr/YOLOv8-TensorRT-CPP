@@ -1,14 +1,19 @@
 #pragma once
-#include "engine.h"
-#include <fstream>
+#include <engine.h>
 
-// Utility method for checking if a file exists on disk
-inline bool doesFileExist (const std::string& name) {
-    std::ifstream f(name.c_str());
-    return f.good();
-}
+#ifdef _MSC_VER
+#define YOLOV8_HIDDEN_API
+#ifdef YOLOV8_TENSORRT_CPP_EXPORT
+#define YOLOV8_API __declspec(dllexport)
+#else
+#define YOLOV8_API __declspec(dllimport)
+#endif // YOLOV8_TENSORRT_CPP_EXPORT
+#else
+#define YOLOV8_API __attribute((visibility("default")))
+#define YOLOV8_HIDDEN_API __attribute((visibility("hidden")))
+#endif // _MSV_VER
 
-struct Object {
+struct InferenceObject {
     // The object class.
     int label{};
     // The detection's confidence probability.
@@ -24,10 +29,6 @@ struct Object {
 // Config the behavior of the YoloV8 detector.
 // Can pass these arguments as command line parameters.
 struct YoloV8Config {
-    // The precision to be used for inference
-    Precision precision = Precision::FP16;
-    // Calibration data directory. Must be specified when using INT8 precision.
-    std::string calibrationDataDirectory;
     // Probability threshold used to filter detected objects
     float probabilityThreshold = 0.25f;
     // Non-maximum suppression threshold
@@ -42,47 +43,41 @@ struct YoloV8Config {
     // Pose estimation options
     int numKPS = 17;
     float kpsThreshold = 0.5f;
-    // Class thresholds (default are COCO classes)
-    std::vector<std::string> classNames = {
-        "person", "bicycle", "car", "motorcycle", "airplane", "bus", "train", "truck", "boat", "traffic light",
-        "fire hydrant", "stop sign", "parking meter", "bench", "bird", "cat", "dog", "horse", "sheep", "cow",
-        "elephant", "bear", "zebra", "giraffe", "backpack", "umbrella", "handbag", "tie", "suitcase", "frisbee",
-        "skis", "snowboard", "sports ball", "kite", "baseball bat", "baseball glove", "skateboard", "surfboard",
-        "tennis racket", "bottle", "wine glass", "cup", "fork", "knife", "spoon", "bowl", "banana", "apple",
-        "sandwich", "orange", "broccoli", "carrot", "hot dog", "pizza", "donut", "cake", "chair", "couch",
-        "potted plant", "bed", "dining table", "toilet", "tv", "laptop", "mouse", "remote", "keyboard", "cell phone",
-        "microwave", "oven", "toaster", "sink", "refrigerator", "book", "clock", "vase", "scissors", "teddy bear",
-        "hair drier", "toothbrush"
-    };
+    // Class thresholds
+    std::vector<std::string> classNames = {};
 };
 
 class YoloV8 {
 public:
-    // Builds the onnx model into a TensorRT engine, and loads the engine into memory
-    YoloV8(const std::string& onnxModelPath, const YoloV8Config& config);
+    YOLOV8_API YoloV8();
+    YOLOV8_API ~YoloV8();
 
-    // Detect the objects in the image
-    std::vector<Object> detectObjects(const cv::Mat& inputImageBGR);
-    std::vector<Object> detectObjects(const cv::cuda::GpuMat& inputImageBGR);
+    YOLOV8_API bool loadEngine(const std::string& onnxPath,
+                               const EngineOptions& engineOptions,
+                               const YoloV8Config& yoloV8Config,
+                               bool autoBuild = true);
+
+    YOLOV8_API bool infer(const std::string& imagePath, std::vector<InferenceObject>& inferenceObjects);
+    YOLOV8_API bool infer(const cv::Mat& inputImage, std::vector<InferenceObject>& inferenceObjects);
+    YOLOV8_API bool infer(const cv::cuda::GpuMat& inputImage, std::vector<InferenceObject>& inferenceObjects);
 
     // Draw the object bounding boxes and labels on the image
-    void drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects, unsigned int scale = 2);
+    YOLOV8_API void drawObjectLabels(cv::Mat& image, const std::vector<InferenceObject> &objects, unsigned int scale = 2);
 private:
     // Preprocess the input
-    std::vector<std::vector<cv::cuda::GpuMat>> preprocess(const cv::cuda::GpuMat& gpuImg);
+    void preprocess(const cv::cuda::GpuMat& gpuImg, std::vector<std::vector<cv::cuda::GpuMat>>& inputs);
 
     // Postprocess the output
-    std::vector<Object> postprocessDetect(std::vector<float>& featureVector);
+    void postprocessDetection(std::vector<float>& featureVector, std::vector<InferenceObject>& inferenceObjects);
 
     // Postprocess the output for pose model
-    std::vector<Object> postprocessPose(std::vector<float>& featureVector);
+    void postprocessPose(std::vector<float>& featureVector, std::vector<InferenceObject>& inferenceObjects);
 
     // Postprocess the output for segmentation model
-    std::vector<Object> postProcessSegmentation(std::vector<std::vector<float>>& featureVectors);
+    void postprocessSegmentation(std::vector<std::vector<float>>& featureVectors,
+                                 std::vector<InferenceObject>& inferenceObjects);
 
-
-
-    std::unique_ptr<Engine> m_trtEngine = nullptr;
+    std::unique_ptr<Engine> m_trtEngine;
 
     // Used for image preprocessing
     // YoloV8 model expects values between [0.f, 1.f] so we use the following params
@@ -95,25 +90,25 @@ private:
     float m_imgHeight = 0;
 
     // Filter thresholds
-    const float PROBABILITY_THRESHOLD;
-    const float NMS_THRESHOLD;
-    const int TOP_K;
+    float m_probabilityThreshold;
+    float m_nmsThreshold;
+    int m_topK;
 
     // Segmentation constants
-    const int SEG_CHANNELS;
-    const int SEG_H;
-    const int SEG_W;
-    const float SEGMENTATION_THRESHOLD;
-
-    // Object classes as strings
-    const std::vector<std::string> CLASS_NAMES;
+    int m_segChannels;
+    int m_segH;
+    int m_segW;
+    float m_segmentationThreshold;
 
     // Pose estimation constant
-    const int NUM_KPS;
-    const float KPS_THRESHOLD;
+    int m_numKps;
+    float m_kpsThreshold;
+
+    // InferenceObject classes as strings
+    std::vector<std::string> m_classNames;
 
     // Color list for drawing objects
-    const std::vector<std::vector<float>> COLOR_LIST = {
+    const std::vector<cv::Scalar> COLOR_LIST = {
             {1, 1, 1},
             {0.098, 0.325, 0.850},
             {0.125, 0.694, 0.929},
