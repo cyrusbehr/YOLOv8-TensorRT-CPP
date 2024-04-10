@@ -82,7 +82,7 @@ private:
 
 
 
-    std::unique_ptr<Engine> m_trtEngine = nullptr;
+    std::unique_ptr<Engine<float>> m_trtEngine = nullptr;
 
     // Used for image preprocessing
     // YoloV8 model expects values between [0.f, 1.f] so we use the following params

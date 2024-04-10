@@ -27,22 +27,16 @@ YoloV8::YoloV8(const std::string& onnxModelPath, const YoloV8Config& config)
     }
 
     // Create our TensorRT inference engine
-    m_trtEngine = std::make_unique<Engine>(options);
+    m_trtEngine = std::make_unique<Engine<float>>(options);
 
-    // Build the onnx model into a TensorRT engine file
-    // If the engine file already exists, this function will return immediately
+    // Build the onnx model into a TensorRT engine file, cache the file to disk, and then load the TensorRT engine file into memory.
+    // If the engine file already exists on disk, this function will not rebuild but only load into memory.
     // The engine file is rebuilt any time the above Options are changed.
-    auto succ = m_trtEngine->build(onnxModelPath, SUB_VALS, DIV_VALS, NORMALIZE);
+    auto succ = m_trtEngine->buildLoadNetwork(onnxModelPath, SUB_VALS, DIV_VALS, NORMALIZE);
     if (!succ) {
-        const std::string errMsg = "Error: Unable to build the TensorRT engine. "
+        const std::string errMsg = "Error: Unable to build or load the TensorRT engine. "
                                    "Try increasing TensorRT log severity to kVERBOSE (in /libs/tensorrt-cpp-api/engine.cpp).";
         throw std::runtime_error(errMsg);
-    }
-
-    // Load the TensorRT engine file
-    succ = m_trtEngine->loadNetwork();
-    if (!succ) {
-        throw std::runtime_error("Error: Unable to load TensorRT engine weights into memory.");
     }
 }
 
@@ -59,7 +53,7 @@ std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::cuda::Gp
     // Resize to the model expected input size while maintaining the aspect ratio with the use of padding
     if (resized.rows != inputDims[0].d[1] || resized.cols != inputDims[0].d[2]) {
         // Only resize if not already the right size to avoid unecessary copy
-        resized = Engine::resizeKeepAspectRatioPadRightBottom(rgbMat, inputDims[0].d[1], inputDims[0].d[2]);
+        resized = Engine<float>::resizeKeepAspectRatioPadRightBottom(rgbMat, inputDims[0].d[1], inputDims[0].d[2]);
     }
 
     // Convert to format expected by our inference engine
@@ -110,7 +104,7 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
         // Object detection or pose estimation
         // Since we have a batch size of 1 and only 1 output, we must convert the output from a 3D array to a 1D array.
         std::vector<float> featureVector;
-        Engine::transformOutput(featureVectors, featureVector);
+        Engine<float>::transformOutput(featureVectors, featureVector);
 
         const auto& outputDims = m_trtEngine->getOutputDims();
         int numChannels = outputDims[outputDims.size() - 1].d[1];
@@ -127,7 +121,7 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
         // Segmentation
         // Since we have a batch size of 1 and 2 outputs, we must convert the output from a 3D array to a 2D array.
         std::vector<std::vector<float>> featureVector;
-        Engine::transformOutput(featureVectors, featureVector);
+        Engine<float>::transformOutput(featureVectors, featureVector);
         ret = postProcessSegmentation(featureVector);
     }
 #ifdef ENABLE_BENCHMARKS
