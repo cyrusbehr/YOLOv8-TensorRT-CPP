@@ -32,9 +32,9 @@ This project demonstrates how to use the TensorRT C++ API to run GPU inference f
 It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr/tensorrt-cpp-api) to run inference behind the scene, so make sure you are familiar with that project.
 
 ### Prerequisites
-- Tested and working on Ubuntu 20.04
-- Install CUDA, instructions [here](https://developer.nvidia.com/cuda-11-8-0-download-archive).
-  - Recommended >= 11.8 
+- Tested and working on Ubuntu 20.04 & 22.04
+- Install CUDA, instructions [here](https://developer.nvidia.com/cuda-downloads).
+  - Recommended >= 12.0 
 - Install cudnn, instructions [here](https://docs.nvidia.com/deeplearning/cudnn/install-guide/index.html#download).
   - Recommended >= 8
 - `sudo apt install build-essential`
@@ -42,9 +42,8 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 - `pip3 install cmake`
 - Install OpenCV with cuda support. To compile OpenCV from source, run the `build_opencv.sh` script provided [here](https://github.com/cyrusbehr/tensorrt-cpp-api/blob/ec6a7529a792b2a9b1ab466f2d0e2da5df47543d/scripts/build_opencv.sh).
   - Recommended >= 4.8
-- Download TensorRT 8 from [here](https://developer.nvidia.com/nvidia-tensorrt-8x-download).
-  - Recommended >= 8.6
-  - Required >= 8.0
+- Download TensorRT 10 from [here](10x).
+  - Required >= 10.0
 - Extract, and then navigate to the `CMakeLists.txt` file and replace the `TODO` with the path to your TensorRT installation.
 
 

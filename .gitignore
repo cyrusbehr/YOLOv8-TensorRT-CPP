@@ -38,3 +38,5 @@ cmake-build-*
 
 *.onnx
 *.pt
+
+.vscode

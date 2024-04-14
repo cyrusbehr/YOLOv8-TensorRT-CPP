@@ -17,7 +17,7 @@ endif()
 find_package(OpenCV REQUIRED)
 
 # TODO: Specify the path to TensorRT root dir
-set(TensorRT_DIR /home/cyrus/work/libs/TensorRT-8.6.1.6/)
+set(TensorRT_DIR /home/cyrus/work/libs/TensorRT-10.0.0.6/)
 
 # Build the TensorRT inference engine library
 # TensorRT is found and linked by the tensorrt-cpp-api
