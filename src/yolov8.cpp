@@ -137,24 +137,24 @@ std::vector<Object> YoloV8::detectObjects(const cv::Mat &inputImageBGR) {
 std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<float>> &featureVectors) {
     const auto &outputDims = m_trtEngine->getOutputDims();
 
-    int numChannels = outputDims[outputDims.size() - 1].d[1];
-    int numAnchors = outputDims[outputDims.size() - 1].d[2];
+    int numChannels = outputDims[0].d[1];
+    int numAnchors = outputDims[0].d[2];
 
     const auto numClasses = numChannels - SEG_CHANNELS - 4;
 
     // Ensure the output lengths are correct
-    if (featureVectors[0].size() != static_cast<size_t>(SEG_CHANNELS) * SEG_H * SEG_W) {
+    if (featureVectors[0].size() != static_cast<size_t>(numChannels) * numAnchors) {
         throw std::logic_error("Output at index 0 has incorrect length");
     }
 
-    if (featureVectors[1].size() != static_cast<size_t>(numChannels) * numAnchors) {
+    if (featureVectors[1].size() != static_cast<size_t>(SEG_CHANNELS) * SEG_H * SEG_W) {
         throw std::logic_error("Output at index 1 has incorrect length");
     }
 
-    cv::Mat output = cv::Mat(numChannels, numAnchors, CV_32F, featureVectors[1].data());
+    cv::Mat output = cv::Mat(numChannels, numAnchors, CV_32F, featureVectors[0].data());
     output = output.t();
 
-    cv::Mat protos = cv::Mat(SEG_CHANNELS, SEG_H * SEG_W, CV_32F, featureVectors[0].data());
+    cv::Mat protos = cv::Mat(SEG_CHANNELS, SEG_H * SEG_W, CV_32F, featureVectors[1].data());
 
     std::vector<int> labels;
     std::vector<float> scores;
