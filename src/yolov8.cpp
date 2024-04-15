@@ -1,17 +1,10 @@
-#include <opencv2/cudaimgproc.hpp>
 #include "yolov8.h"
+#include <opencv2/cudaimgproc.hpp>
 
-YoloV8::YoloV8(const std::string& onnxModelPath, const YoloV8Config& config)
-        : PROBABILITY_THRESHOLD(config.probabilityThreshold)
-        , NMS_THRESHOLD(config.nmsThreshold)
-        , TOP_K(config.topK)
-        , SEG_CHANNELS(config.segChannels)
-        , SEG_H(config.segH)
-        , SEG_W(config.segW)
-        , SEGMENTATION_THRESHOLD(config.segmentationThreshold)
-        , CLASS_NAMES(config.classNames)
-        , NUM_KPS(config.numKPS)
-        , KPS_THRESHOLD(config.kpsThreshold) {
+YoloV8::YoloV8(const std::string &onnxModelPath, const YoloV8Config &config)
+    : PROBABILITY_THRESHOLD(config.probabilityThreshold), NMS_THRESHOLD(config.nmsThreshold), TOP_K(config.topK),
+      SEG_CHANNELS(config.segChannels), SEG_H(config.segH), SEG_W(config.segW), SEGMENTATION_THRESHOLD(config.segmentationThreshold),
+      CLASS_NAMES(config.classNames), NUM_KPS(config.numKPS), KPS_THRESHOLD(config.kpsThreshold) {
     // Specify options for GPU inference
     Options options;
     options.optBatchSize = 1;
@@ -42,7 +35,7 @@ YoloV8::YoloV8(const std::string& onnxModelPath, const YoloV8Config& config)
 
 std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::cuda::GpuMat &gpuImg) {
     // Populate the input vectors
-    const auto& inputDims = m_trtEngine->getInputDims();
+    const auto &inputDims = m_trtEngine->getInputDims();
 
     // Convert the image from BGR to RGB
     cv::cuda::GpuMat rgbMat;
@@ -60,12 +53,12 @@ std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::cuda::Gp
     // The reason for the strange format is because it supports models with multiple inputs as well as batching
     // In our case though, the model only has a single input and we are using a batch size of 1.
     std::vector<cv::cuda::GpuMat> input{std::move(resized)};
-    std::vector<std::vector<cv::cuda::GpuMat>> inputs {std::move(input)};
+    std::vector<std::vector<cv::cuda::GpuMat>> inputs{std::move(input)};
 
     // These params will be used in the post-processing stage
     m_imgHeight = rgbMat.rows;
     m_imgWidth = rgbMat.cols;
-    m_ratio =  1.f / std::min(inputDims[0].d[2] / static_cast<float>(rgbMat.cols), inputDims[0].d[1] / static_cast<float>(rgbMat.rows));
+    m_ratio = 1.f / std::min(inputDims[0].d[2] / static_cast<float>(rgbMat.cols), inputDims[0].d[1] / static_cast<float>(rgbMat.rows));
 
     return inputs;
 }
@@ -99,14 +92,14 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
 #endif
     // Check if our model does only object detection or also supports segmentation
     std::vector<Object> ret;
-    const auto& numOutputs = m_trtEngine->getOutputDims().size();
+    const auto &numOutputs = m_trtEngine->getOutputDims().size();
     if (numOutputs == 1) {
         // Object detection or pose estimation
         // Since we have a batch size of 1 and only 1 output, we must convert the output from a 3D array to a 1D array.
         std::vector<float> featureVector;
         Engine<float>::transformOutput(featureVectors, featureVector);
 
-        const auto& outputDims = m_trtEngine->getOutputDims();
+        const auto &outputDims = m_trtEngine->getOutputDims();
         int numChannels = outputDims[outputDims.size() - 1].d[1];
         // TODO: Need to improve this to make it more generic (don't use magic number).
         // For now it works with Ultralytics pretrained models.
@@ -126,7 +119,7 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
     }
 #ifdef ENABLE_BENCHMARKS
     static long long t3 = 0;
-    t3 +=  s3.elapsedTime<long long, std::chrono::microseconds>();
+    t3 += s3.elapsedTime<long long, std::chrono::microseconds>();
     std::cout << "Avg Postprocess time: " << (t3 / numIts++) / 1000.f << " ms\n" << std::endl;
 #endif
     return ret;
@@ -141,8 +134,8 @@ std::vector<Object> YoloV8::detectObjects(const cv::Mat &inputImageBGR) {
     return detectObjects(gpuImg);
 }
 
-std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<float>>& featureVectors) {
-    const auto& outputDims = m_trtEngine->getOutputDims();
+std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<float>> &featureVectors) {
+    const auto &outputDims = m_trtEngine->getOutputDims();
 
     int numChannels = outputDims[outputDims.size() - 1].d[1];
     int numAnchors = outputDims[outputDims.size() - 1].d[2];
@@ -205,20 +198,13 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
     }
 
     // Require OpenCV 4.7 for this function
-    cv::dnn::NMSBoxesBatched(
-            bboxes,
-            scores,
-            labels,
-            PROBABILITY_THRESHOLD,
-            NMS_THRESHOLD,
-            indices
-    );
+    cv::dnn::NMSBoxesBatched(bboxes, scores, labels, PROBABILITY_THRESHOLD, NMS_THRESHOLD, indices);
 
     // Obtain the segmentation masks
     cv::Mat masks;
     std::vector<Object> objs;
     int cnt = 0;
-    for (auto& i : indices) {
+    for (auto &i : indices) {
         if (cnt >= TOP_K) {
             break;
         }
@@ -235,7 +221,7 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
     // Convert segmentation mask to original frame
     if (!masks.empty()) {
         cv::Mat matmulRes = (masks * protos).t();
-        cv::Mat maskMat = matmulRes.reshape(indices.size(), { SEG_W, SEG_H });
+        cv::Mat maskMat = matmulRes.reshape(indices.size(), {SEG_W, SEG_H});
 
         std::vector<cv::Mat> maskChannels;
         cv::split(maskMat, maskChannels);
@@ -248,19 +234,12 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
             roi = cv::Rect(0, 0, SEG_W, SEG_H * m_imgHeight / m_imgWidth);
         }
 
-
-        for (size_t i = 0; i < indices.size(); i++)
-        {
+        for (size_t i = 0; i < indices.size(); i++) {
             cv::Mat dest, mask;
             cv::exp(-maskChannels[i], dest);
             dest = 1.0 / (1.0 + dest);
             dest = dest(roi);
-            cv::resize(
-                    dest,
-                    mask,
-                    cv::Size(static_cast<int>(m_imgWidth), static_cast<int>(m_imgHeight)),
-                    cv::INTER_LINEAR
-            );
+            cv::resize(dest, mask, cv::Size(static_cast<int>(m_imgWidth), static_cast<int>(m_imgHeight)), cv::INTER_LINEAR);
             objs[i].boxMask = mask(objs[i].rect) > SEGMENTATION_THRESHOLD;
         }
     }
@@ -269,7 +248,7 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
 }
 
 std::vector<Object> YoloV8::postprocessPose(std::vector<float> &featureVector) {
-    const auto& outputDims = m_trtEngine->getOutputDims();
+    const auto &outputDims = m_trtEngine->getOutputDims();
     auto numChannels = outputDims[0].d[1];
     auto numAnchors = outputDims[0].d[2];
 
@@ -311,8 +290,8 @@ std::vector<Object> YoloV8::postprocessPose(std::vector<float> &featureVector) {
                 float kpsX = *(kps_ptr + 3 * k) * m_ratio;
                 float kpsY = *(kps_ptr + 3 * k + 1) * m_ratio;
                 float kpsS = *(kps_ptr + 3 * k + 2);
-                kpsX       = std::clamp(kpsX, 0.f, m_imgWidth);
-                kpsY       = std::clamp(kpsY, 0.f, m_imgHeight);
+                kpsX = std::clamp(kpsX, 0.f, m_imgWidth);
+                kpsY = std::clamp(kpsY, 0.f, m_imgHeight);
                 kps.push_back(kpsX);
                 kps.push_back(kpsY);
                 kps.push_back(kpsS);
@@ -332,7 +311,7 @@ std::vector<Object> YoloV8::postprocessPose(std::vector<float> &featureVector) {
 
     // Choose the top k detections
     int cnt = 0;
-    for (auto& chosenIdx : indices) {
+    for (auto &chosenIdx : indices) {
         if (cnt >= TOP_K) {
             break;
         }
@@ -347,10 +326,11 @@ std::vector<Object> YoloV8::postprocessPose(std::vector<float> &featureVector) {
         cnt += 1;
     }
 
-    return objects;}
+    return objects;
+}
 
 std::vector<Object> YoloV8::postprocessDetect(std::vector<float> &featureVector) {
-    const auto& outputDims = m_trtEngine->getOutputDims();
+    const auto &outputDims = m_trtEngine->getOutputDims();
     auto numChannels = outputDims[0].d[1];
     auto numAnchors = outputDims[0].d[2];
 
@@ -402,7 +382,7 @@ std::vector<Object> YoloV8::postprocessDetect(std::vector<float> &featureVector)
 
     // Choose the top k detections
     int cnt = 0;
-    for (auto& chosenIdx : indices) {
+    for (auto &chosenIdx : indices) {
         if (cnt >= TOP_K) {
             break;
         }
@@ -419,16 +399,14 @@ std::vector<Object> YoloV8::postprocessDetect(std::vector<float> &featureVector)
     return objects;
 }
 
-void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects, unsigned int scale) {
+void YoloV8::drawObjectLabels(cv::Mat &image, const std::vector<Object> &objects, unsigned int scale) {
     // If segmentation information is present, start with that
     if (!objects.empty() && !objects[0].boxMask.empty()) {
         cv::Mat mask = image.clone();
-        for (const auto& object: objects) {
+        for (const auto &object : objects) {
             // Choose the color
             int colorIndex = object.label % COLOR_LIST.size(); // We have only defined 80 unique colors
-            cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0],
-                                          COLOR_LIST[colorIndex][1],
-                                          COLOR_LIST[colorIndex][2]);
+            cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0], COLOR_LIST[colorIndex][1], COLOR_LIST[colorIndex][2]);
 
             // Add the mask for said object
             mask(object.rect).setTo(color * 255, object.boxMask);
@@ -438,21 +416,19 @@ void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects
     }
 
     // Bounding boxes and annotations
-    for (auto & object : objects) {
+    for (auto &object : objects) {
         // Choose the color
-		int colorIndex = object.label % COLOR_LIST.size(); // We have only defined 80 unique colors
-        cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0],
-                                      COLOR_LIST[colorIndex][1],
-                                      COLOR_LIST[colorIndex][2]);
+        int colorIndex = object.label % COLOR_LIST.size(); // We have only defined 80 unique colors
+        cv::Scalar color = cv::Scalar(COLOR_LIST[colorIndex][0], COLOR_LIST[colorIndex][1], COLOR_LIST[colorIndex][2]);
         float meanColor = cv::mean(color)[0];
         cv::Scalar txtColor;
-        if (meanColor > 0.5){
+        if (meanColor > 0.5) {
             txtColor = cv::Scalar(0, 0, 0);
-        }else{
+        } else {
             txtColor = cv::Scalar(255, 255, 255);
         }
 
-        const auto& rect = object.rect;
+        const auto &rect = object.rect;
 
         // Draw rectangles and text
         char text[256];
@@ -468,27 +444,26 @@ void YoloV8::drawObjectLabels(cv::Mat& image, const std::vector<Object> &objects
 
         cv::rectangle(image, rect, color * 255, scale + 1);
 
-        cv::rectangle(image, cv::Rect(cv::Point(x, y), cv::Size(labelSize.width, labelSize.height + baseLine)),
-                      txt_bk_color, -1);
+        cv::rectangle(image, cv::Rect(cv::Point(x, y), cv::Size(labelSize.width, labelSize.height + baseLine)), txt_bk_color, -1);
 
         cv::putText(image, text, cv::Point(x, y + labelSize.height), cv::FONT_HERSHEY_SIMPLEX, 0.35 * scale, txtColor, scale);
 
         // Pose estimation
         if (!object.kps.empty()) {
-            auto& kps = object.kps;
+            auto &kps = object.kps;
             for (int k = 0; k < NUM_KPS + 2; k++) {
                 if (k < NUM_KPS) {
-                    int   kpsX = std::round(kps[k * 3]);
-                    int   kpsY = std::round(kps[k * 3 + 1]);
+                    int kpsX = std::round(kps[k * 3]);
+                    int kpsY = std::round(kps[k * 3 + 1]);
                     float kpsS = kps[k * 3 + 2];
                     if (kpsS > KPS_THRESHOLD) {
                         cv::Scalar kpsColor = cv::Scalar(KPS_COLORS[k][0], KPS_COLORS[k][1], KPS_COLORS[k][2]);
                         cv::circle(image, {kpsX, kpsY}, 5, kpsColor, -1);
                     }
                 }
-                auto& ske    = SKELETON[k];
-                int   pos1X = std::round(kps[(ske[0] - 1) * 3]);
-                int   pos1Y = std::round(kps[(ske[0] - 1) * 3 + 1]);
+                auto &ske = SKELETON[k];
+                int pos1X = std::round(kps[(ske[0] - 1) * 3]);
+                int pos1Y = std::round(kps[(ske[0] - 1) * 3 + 1]);
 
                 int pos2X = std::round(kps[(ske[1] - 1) * 3]);
                 int pos2Y = std::round(kps[(ske[1] - 1) * 3 + 1]);
