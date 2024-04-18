@@ -97,6 +97,12 @@ Benchmarks run on NVIDIA GeForce RTX 3080 Laptop GPU, Intel(R) Core(TM) i7-10870
 | yolov8n-pose | 2.107 ms   | 0.091 ms        | 1.609 ms       | 0.407 ms         |
 | yolov8n-seg  | 15.194 ms  | 0.109 ms        | 2.732 ms       | 12.353 ms        |
 
+| Model   	| Precision 	| Total Time 	| Preprocess Time 	| Inference Time 	| Postprocess Time 	|
+|---------	|-----------	|------------	|-----------------	|----------------	|------------------	|
+| yolov8x 	| FP32      	| 25.819 ms  	| 0.103 ms        	| 23.763 ms      	| 1.953 ms         	|
+| yolov8x 	| FP16      	| 10.147 ms  	| 0.083 ms        	| 7.677 ms       	| 2.387 ms         	|
+| yolov8x 	| INT8      	| 7.32 ms    	| 0.103 ms        	| 4.698 ms       	| 2.519 ms         	|
+
 TODO: Need to improve postprocessing time using CUDA kernel. 
 
 ### How to debug
