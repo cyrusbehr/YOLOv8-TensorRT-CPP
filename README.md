@@ -27,6 +27,13 @@
 </p>
 
 
+## Looking for Maintainers 🚀
+
+This project is actively seeking maintainers to help guide its growth and improvement. If you're passionate about this project and interested in contributing, I’d love to hear from you!
+
+Please feel free to reach out via [LinkedIn](https://www.linkedin.com/in/cyrus-behroozi/) to discuss how you can get involved.
+
+
 ### Getting Started
 This project demonstrates how to use the TensorRT C++ API to run GPU inference for YoloV8. 
 It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr/tensorrt-cpp-api) to run inference behind the scene, so make sure you are familiar with that project.
