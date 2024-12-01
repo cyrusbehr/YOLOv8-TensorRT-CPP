@@ -1,7 +1,7 @@
 #include "yolov8.h"
 #include <opencv2/cudaimgproc.hpp>
 
-YoloV8::YoloV8(const std::string &onnxModelPath, const YoloV8Config &config)
+YoloV8::YoloV8(const std::string &onnxModelPath, const std::string &trtModelPath, const YoloV8Config &config)
     : PROBABILITY_THRESHOLD(config.probabilityThreshold), NMS_THRESHOLD(config.nmsThreshold), TOP_K(config.topK),
       SEG_CHANNELS(config.segChannels), SEG_H(config.segH), SEG_W(config.segW), SEGMENTATION_THRESHOLD(config.segmentationThreshold),
       CLASS_NAMES(config.classNames), NUM_KPS(config.numKPS), KPS_THRESHOLD(config.kpsThreshold) {
@@ -25,11 +25,22 @@ YoloV8::YoloV8(const std::string &onnxModelPath, const YoloV8Config &config)
     // Build the onnx model into a TensorRT engine file, cache the file to disk, and then load the TensorRT engine file into memory.
     // If the engine file already exists on disk, this function will not rebuild but only load into memory.
     // The engine file is rebuilt any time the above Options are changed.
-    auto succ = m_trtEngine->buildLoadNetwork(onnxModelPath, SUB_VALS, DIV_VALS, NORMALIZE);
-    if (!succ) {
-        const std::string errMsg = "Error: Unable to build or load the TensorRT engine. "
-                                   "Try increasing TensorRT log severity to kVERBOSE (in /libs/tensorrt-cpp-api/engine.cpp).";
-        throw std::runtime_error(errMsg);
+    if (!onnxModelPath.empty()) {
+        // Build the ONNX model into a TensorRT engine file
+        auto succ = m_trtEngine->buildLoadNetwork(onnxModelPath, SUB_VALS, DIV_VALS, NORMALIZE);
+        if (!succ) {
+            const std::string errMsg = "Error: Unable to build or load the TensorRT engine from ONNX model. "
+                                       "Try increasing TensorRT log severity to kVERBOSE (in /libs/tensorrt-cpp-api/engine.cpp).";
+            throw std::runtime_error(errMsg);
+        }
+    } else if (!trtModelPath.empty()) { // If no ONNX model, check for TRT model
+        // Load the TensorRT engine file directly
+        bool succ = m_trtEngine->loadNetwork(trtModelPath, SUB_VALS, DIV_VALS, NORMALIZE);
+        if (!succ) {
+            throw std::runtime_error("Error: Unable to load TensorRT engine from " + trtModelPath);
+        }
+    } else {
+        throw std::runtime_error("Error: Neither ONNX model nor TensorRT engine path provided.");
     }
 }
 

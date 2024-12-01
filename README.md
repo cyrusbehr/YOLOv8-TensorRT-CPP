@@ -80,6 +80,7 @@ It makes use of my other project [tensorrt-cpp-api](https://github.com/cyrusbehr
 - To run inference on an image and save the annotated image to disk run: `./detect_object_image --model /path/to/your/onnx/model.onnx --input /path/to/your/image.jpg`
   - You can use the images in the `images/` directory for testing
 - To run inference using your webcam and display the results in real time, run: `./detect_object_video --model /path/to/your/onnx/model.onnx --input 0`
+- Note: You can also specify a TensorRT engine file by using the `--trt_model` option if you have a pre-built TensorRT engine available.
 - For a full list of arguments, run any of the executables without providing any arguments.
 
 ### INT8 Inference

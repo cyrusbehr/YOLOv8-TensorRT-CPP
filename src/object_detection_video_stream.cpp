@@ -6,15 +6,16 @@
 int main(int argc, char *argv[]) {
     YoloV8Config config;
     std::string onnxModelPath;
+    std::string trtModelPath;
     std::string inputVideo;
 
     // Parse the command line arguments
-    if (!parseArgumentsVideo(argc, argv, config, onnxModelPath, inputVideo)) {
+    if (!parseArgumentsVideo(argc, argv, config, onnxModelPath, trtModelPath, inputVideo)) {
         return -1;
     }
 
     // Create the YoloV8 engine
-    YoloV8 yoloV8(onnxModelPath, config);
+    YoloV8 yoloV8(onnxModelPath, trtModelPath, config);
 
     // Initialize the video stream
     cv::VideoCapture cap;
