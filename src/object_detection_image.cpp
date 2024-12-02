@@ -5,15 +5,16 @@
 int main(int argc, char *argv[]) {
     YoloV8Config config;
     std::string onnxModelPath;
+    std::string trtModelPath;
     std::string inputImage;
 
     // Parse the command line arguments
-    if (!parseArguments(argc, argv, config, onnxModelPath, inputImage)) {
+    if (!parseArguments(argc, argv, config, onnxModelPath, trtModelPath, inputImage)) {
         return -1;
     }
 
     // Create the YoloV8 engine
-    YoloV8 yoloV8(onnxModelPath, config);
+    YoloV8 yoloV8(onnxModelPath, trtModelPath, config);
 
     // Read the input image
     auto img = cv::imread(inputImage);

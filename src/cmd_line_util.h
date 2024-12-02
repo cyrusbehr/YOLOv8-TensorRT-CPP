@@ -6,7 +6,8 @@ inline void showHelp(char *argv[]) {
     std::cout << "Usage: " << argv[0] << " [OPTIONS]" << std::endl << std::endl;
 
     std::cout << "Options:" << std::endl;
-    std::cout << "--model <string>                  Path to the ONNX model. (Mandatory)" << std::endl;
+    std::cout << "--model <string>                  Path to the ONNX model. (Mandatory if --trt_model is not provided)" << std::endl;
+    std::cout << "--trt_model <string>              Path to the TensorRT engine model. (Optional)" << std::endl;
     std::cout << "--input <string || int>           Input source for detection. Accepts a path to an image file. For video detection, must "
                  "be path to video source, or video index. (Mandatory)"
               << std::endl;
@@ -81,7 +82,7 @@ inline bool tryParseFloat(const std::string &s, float &value, const std::string 
     }
 }
 
-inline bool parseArguments(int argc, char *argv[], YoloV8Config &config, std::string &onnxModelPath, std::string &inputImage) {
+inline bool parseArguments(int argc, char *argv[], YoloV8Config &config, std::string &onnxModelPath, std::string &trtModelPath, std::string &inputImage) {
     if (argc == 1) {
         showHelp(argv);
         return false;
@@ -104,6 +105,18 @@ inline bool parseArguments(int argc, char *argv[], YoloV8Config &config, std::st
                 }
 
                 onnxModelPath = nextArgument;
+            }
+
+            else if (flag == "trt_model") {
+                if (!tryGetNextArgument(argc, argv, i, nextArgument, flag))
+                    return false;
+
+                if (!doesFileExist(nextArgument)) {
+                    std::cout << "Error: Unable to find TensorRT engine at path '" << nextArgument << "' for flag '" << flag << "'" << std::endl;
+                    return false;
+                }
+
+                trtModelPath = nextArgument;
             }
 
             else if (flag == "input") {
@@ -249,8 +262,8 @@ inline bool parseArguments(int argc, char *argv[], YoloV8Config &config, std::st
         }
     }
 
-    if (onnxModelPath.empty()) {
-        std::cout << "Error: No arguments provided for flag 'model'" << std::endl;
+    if (onnxModelPath.empty() && trtModelPath.empty()) {
+        std::cout << "Error: At least one of --model or --trt_model must be provided." << std::endl;
         return false;
     }
 
@@ -262,7 +275,7 @@ inline bool parseArguments(int argc, char *argv[], YoloV8Config &config, std::st
     return true;
 }
 
-inline bool parseArgumentsVideo(int argc, char *argv[], YoloV8Config &config, std::string &onnxModelPath, std::string &inputVideo) {
+inline bool parseArgumentsVideo(int argc, char *argv[], YoloV8Config &config, std::string &onnxModelPath, std::string &trtModelPath, std::string &inputVideo) {
     if (argc == 1) {
         showHelp(argv);
         return false;
@@ -285,6 +298,18 @@ inline bool parseArgumentsVideo(int argc, char *argv[], YoloV8Config &config, st
                 }
 
                 onnxModelPath = nextArgument;
+            }
+
+            else if (flag == "trt_model") { // New section for TRT model
+                if (!tryGetNextArgument(argc, argv, i, nextArgument, flag))
+                    return false;
+
+                if (!doesFileExist(nextArgument)) {
+                    std::cout << "Error: Unable to find TensorRT model at path '" << nextArgument << "' for flag '" << flag << "'" << std::endl;
+                    return false;
+                }
+
+                trtModelPath = nextArgument;
             }
 
             else if (flag == "input") {
@@ -425,8 +450,8 @@ inline bool parseArgumentsVideo(int argc, char *argv[], YoloV8Config &config, st
         }
     }
 
-    if (onnxModelPath.empty()) {
-        std::cout << "Error: No arguments provided for flag 'model'" << std::endl;
+    if (onnxModelPath.empty() && trtModelPath.empty()) {
+        std::cout << "Error: At least one of --model or --trt_model must be provided." << std::endl;
         return false;
     }
 
