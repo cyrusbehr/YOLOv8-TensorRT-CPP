@@ -130,6 +130,7 @@ If this project was helpful to you, I would appreicate if you could give it a st
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/z3lx"><img src="https://avatars.githubusercontent.com/u/57017122?v=4?s=100" width="100px;" alt="z3lx"/><br /><sub><b>z3lx</b></sub></a><br /><a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP/commits?author=z3lx" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://ltetrel.github.io/"><img src="https://avatars.githubusercontent.com/u/37963074?v=4?s=100" width="100px;" alt="Loic Tetrel"/><br /><sub><b>Loic Tetrel</b></sub></a><br /><a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP/commits?author=ltetrel" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="http://iamshubhamgupto.github.io"><img src="https://avatars.githubusercontent.com/u/32878682?v=4?s=100" width="100px;" alt="Shubham"/><br /><sub><b>Shubham</b></sub></a><br /><a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP/commits?author=IamShubhamGupto" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="http://amirhosein-vedadi.github.io"><img src="https://avatars.githubusercontent.com/u/44273428?v=4?s=100" width="100px;" alt="Amirhosein Vedadi"/><br /><sub><b>Amirhosein Vedadi</b></sub></a><br /><a href="https://github.com/cyrusbehr/YOLOv8-TensorRT-CPP/commits?author=amirhosein-vedadi" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
