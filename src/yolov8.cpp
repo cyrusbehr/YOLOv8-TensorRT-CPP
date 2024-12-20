@@ -111,15 +111,16 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
         Engine<float>::transformOutput(featureVectors, featureVector);
 
         const auto &outputDims = m_trtEngine->getOutputDims();
-        int numChannels = outputDims[outputDims.size() - 1].d[1];
-        // TODO: Need to improve this to make it more generic (don't use magic number).
-        // For now it works with Ultralytics pretrained models.
-        if (numChannels == 56) {
+        size_t numChannels = outputDims[outputDims.size() - 1].d[1];
+        if (numChannels == 4 + CLASS_NAMES.size() + NUM_KPS * 3) {
             // Pose estimation
             ret = postprocessPose(featureVector);
-        } else {
+        } else if (numChannels == 4 + CLASS_NAMES.size()){
             // Object detection
             ret = postprocessDetect(featureVector);
+        }
+        else {
+            throw std::runtime_error("Error: Unable to identify whether the model is for Pose estimation or Object detection.");
         }
     } else {
         // Segmentation
