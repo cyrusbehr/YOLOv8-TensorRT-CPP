@@ -37,3 +37,9 @@ target_link_libraries(benchmark YoloV8_TRT)
 
 add_executable(detect_object_video src/object_detection_video_stream.cpp)
 target_link_libraries(detect_object_video YoloV8_TRT)
+
+add_executable(detect_object_camera src/object_detection_camera_stream.cpp)
+target_link_libraries(detect_object_camera YoloV8_TRT)
+
+# Enable debugging flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g")
