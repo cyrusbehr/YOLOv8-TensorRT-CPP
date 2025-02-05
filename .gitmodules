@@ -1,3 +1,3 @@
 [submodule "libs/tensorrt-cpp-api"]
 	path = libs/tensorrt-cpp-api
-	url = https://github.com/cyrusbehr/tensorrt-cpp-api.git
+	url = https://github.com/crose72/tensorrt-cpp-api.git
