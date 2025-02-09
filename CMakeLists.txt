@@ -37,3 +37,6 @@ target_link_libraries(benchmark YoloV8_TRT)
 
 add_executable(detect_object_video src/object_detection_video_stream.cpp)
 target_link_libraries(detect_object_video YoloV8_TRT)
+
+add_executable(detect_object_csi_jetson src/object_detection_csi_jetson.cpp)
+target_link_libraries(detect_object_csi_jetson YoloV8_TRT)
