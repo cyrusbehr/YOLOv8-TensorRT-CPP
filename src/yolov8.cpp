@@ -2,6 +2,19 @@
 #include "stopwatch.h"
 #include <iostream> // std::cout in the ENABLE_BENCHMARKS timing (was transitive via the v6 engine.h)
 #include <opencv2/cudaimgproc.hpp>
+#include <stdexcept>
+
+namespace {
+// Unwrap a v7 Result, throwing on error (this app uses exceptions). Calling .value() directly
+// would assert in debug builds and be undefined behavior in -DNDEBUG release builds when the
+// Result holds an error (e.g. a dynamic/oversized shape, OOM, or a non-float output dtype).
+template <class T> T must(trtcpp::Result<T> r, const char *what) {
+    if (!r) {
+        throw std::runtime_error(std::string("Error: ") + what + ": " + r.status().message());
+    }
+    return std::move(r).value();
+}
+} // namespace
 
 YoloV8::YoloV8(const std::string &onnxModelPath, const YoloV8Config &config)
     : PROBABILITY_THRESHOLD(config.probabilityThreshold), NMS_THRESHOLD(config.nmsThreshold), TOP_K(config.topK),
@@ -30,13 +43,14 @@ YoloV8::YoloV8(const std::string &onnxModelPath, const YoloV8Config &config)
     // Cache IO metadata once (v7 is name-keyed and non-templated).
     m_inputName = m_engine->inputNames().front();
     m_outputNames = m_engine->outputNames();
-    m_inputShape = m_engine->tensorShape(m_inputName).value(); // [1,3,H,W]
+    m_inputShape = must(m_engine->tensorShape(m_inputName), "query input shape"); // [1,3,H,W]
     for (const auto &name : m_outputNames) {
-        m_outputShapes.push_back(m_engine->tensorShape(name).value());
+        m_outputShapes.push_back(must(m_engine->tensorShape(name), "query output shape"));
     }
 
-    // Pre-allocate the NCHW float input tensor (static shape; reused across frames).
-    m_input = trtcpp::Tensor::allocate(trtcpp::DType::kFloat32, m_inputShape, trtcpp::Device::kCuda).value();
+    // Pre-allocate the NCHW float input tensor. allocate() errors (and we throw) on a dynamic
+    // input shape or a CUDA OOM rather than crashing on an unchecked .value().
+    m_input = must(trtcpp::Tensor::allocate(trtcpp::DType::kFloat32, m_inputShape, trtcpp::Device::kCuda), "allocate input tensor");
 }
 
 void YoloV8::preprocess(const cv::cuda::GpuMat &gpuImg) {
@@ -94,7 +108,7 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
         if (!host) {
             throw std::runtime_error("Error: output readback failed: " + host.status().message());
         }
-        const auto span = host->as<float>().value();
+        const auto span = must(host->as<float>(), "output tensor is not float32 (rebuild the engine with a float output)");
         featureVectors.emplace_back(span.begin(), span.end());
     }
 #ifdef ENABLE_BENCHMARKS
