@@ -1,6 +1,20 @@
 #pragma once
-#include "engine.h"
+// Migrated to tensorrt_cpp_api v7. The v7 public headers deliberately pull in no OpenCV, so the
+// OpenCV headers this class needs (cv::Mat / GpuMat / dnn::NMSBoxesBatched) are now included
+// explicitly here rather than transitively via the old "engine.h".
+#include <tensorrt_cpp_api/all.h>
+#include <tensorrt_cpp_api/opencv_interop.h>
+#include <tensorrt_cpp_api/preproc.h>
+
+#include <opencv2/core.hpp>
+#include <opencv2/core/cuda.hpp>
+#include <opencv2/dnn.hpp>
+#include <opencv2/imgproc.hpp>
+
 #include <fstream>
+#include <memory>
+#include <string>
+#include <vector>
 
 // Utility method for checking if a file exists on disk
 inline bool doesFileExist(const std::string &name) {
@@ -25,7 +39,7 @@ struct Object {
 // Can pass these arguments as command line parameters.
 struct YoloV8Config {
     // The precision to be used for inference
-    Precision precision = Precision::FP16;
+    trtcpp::Precision precision = trtcpp::Precision::kFp16;
     // Calibration data directory. Must be specified when using INT8 precision.
     std::string calibrationDataDirectory;
     // Probability threshold used to filter detected objects
@@ -71,8 +85,8 @@ public:
     void drawObjectLabels(cv::Mat &image, const std::vector<Object> &objects, unsigned int scale = 2);
 
 private:
-    // Preprocess the input
-    std::vector<std::vector<cv::cuda::GpuMat>> preprocess(const cv::cuda::GpuMat &gpuImg);
+    // Preprocess the input (fills m_input + m_ratio/m_imgWidth/m_imgHeight)
+    void preprocess(const cv::cuda::GpuMat &gpuImg);
 
     // Postprocess the output
     std::vector<Object> postprocessDetect(std::vector<float> &featureVector);
@@ -83,7 +97,15 @@ private:
     // Postprocess the output for segmentation model
     std::vector<Object> postProcessSegmentation(std::vector<std::vector<float>> &featureVectors);
 
-    std::unique_ptr<Engine<float>> m_trtEngine = nullptr;
+    // v7 engine + cached IO metadata (v7 is name-keyed and non-templated). The owning input
+    // Tensor is reused across frames; the caller-owned stream drives async work.
+    std::unique_ptr<trtcpp::Engine> m_engine = nullptr;
+    trtcpp::Stream m_stream;
+    std::string m_inputName;
+    std::vector<std::string> m_outputNames;
+    trtcpp::Shape m_inputShape;                // [1,3,H,W]
+    std::vector<trtcpp::Shape> m_outputShapes; // build-time shapes, in output-binding order
+    trtcpp::Tensor m_input;                    // NCHW float device tensor fed to the engine
 
     // Used for image preprocessing
     // YoloV8 model expects values between [0.f, 1.f] so we use the following params

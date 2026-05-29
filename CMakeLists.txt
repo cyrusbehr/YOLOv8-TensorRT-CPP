@@ -4,8 +4,8 @@ project(YOLOv8_TensorRT_CPP)
 # Use ccache to speed up rebuilds
 include(cmake/ccache.cmake)
 
-# Set C++ version and optimization level
-set(CMAKE_CXX_STANDARD 17)
+# Set C++ version and optimization level (tensorrt_cpp_api v7 requires C++20)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Ofast -DNDEBUG -Wno-deprecated-declarations")
 
 # CMake Options
@@ -19,14 +19,20 @@ find_package(OpenCV REQUIRED)
 # TODO: Specify the path to TensorRT root dir
 set(TensorRT_DIR /home/cyrus/work/libs/TensorRT-10.0.0.6/)
 
-# Build the TensorRT inference engine library
-# TensorRT is found and linked by the tensorrt-cpp-api
+# Build the tensorrt_cpp_api v7 library (git submodule). Enable its OpenCV interop so we can hand
+# cv::cuda::GpuMat frames to the fused preprocessing kernel zero-copy (trtcpp::opencv::viewOf).
+# NOTE: the libs/tensorrt-cpp-api submodule must be at tensorrt_cpp_api v7.0.0+ (see MIGRATION.md).
+set(TRT_CPP_API_WITH_OPENCV ON CACHE BOOL "" FORCE)
+set(TRT_CPP_API_BUILD_PREPROC ON CACHE BOOL "" FORCE)
 add_subdirectory(libs/tensorrt-cpp-api)
 
-# Build the YoloV8 library
+# Build the YoloV8 library. v7 exposes namespaced targets and propagates its own include dirs
+# (the tensorrt_cpp_api/ root), so the old libs/.../src include is gone.
 add_library(YoloV8_TRT SHARED src/yolov8.cpp)
-target_link_libraries(YoloV8_TRT PUBLIC tensorrt_cpp_api ${OpenCV_LIBS})
-target_include_directories(YoloV8_TRT PUBLIC libs/tensorrt-cpp-api/src)
+target_link_libraries(YoloV8_TRT PUBLIC
+    tensorrt_cpp_api::tensorrt_cpp_api
+    tensorrt_cpp_api::preproc
+    ${OpenCV_LIBS})
 
 # Build and link the executables
 add_executable(detect_object_image src/object_detection_image.cpp)

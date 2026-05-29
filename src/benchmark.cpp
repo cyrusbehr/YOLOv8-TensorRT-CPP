@@ -1,6 +1,8 @@
 #include "cmd_line_util.h"
+#include "stopwatch.h"
 #include "yolov8.h"
 #include <opencv2/cudaimgproc.hpp>
+#include <opencv2/imgcodecs.hpp> // imread (was pulled in transitively by the v6 engine.h)
 
 // Benchmarks the specified model
 int main(int argc, char *argv[]) {
