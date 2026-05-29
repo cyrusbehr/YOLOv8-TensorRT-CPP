@@ -1,5 +1,6 @@
 #include "yolov8.h"
 #include "stopwatch.h"
+#include <iostream> // std::cout in the ENABLE_BENCHMARKS timing (was transitive via the v6 engine.h)
 #include <opencv2/cudaimgproc.hpp>
 
 YoloV8::YoloV8(const std::string &onnxModelPath, const YoloV8Config &config)
