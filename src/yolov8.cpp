@@ -15,7 +15,7 @@ template <class T> T must(trtcpp::Result<T> r, const char *what) {
 }
 } // namespace
 
-YoloV8::YoloV8(const std::string &onnxModelPath, const YoloV8Config &config)
+YoloV8::YoloV8(const std::string &onnxModelPath, const std::string &trtModelPath, const YoloV8Config &config)
     : PROBABILITY_THRESHOLD(config.probabilityThreshold), NMS_THRESHOLD(config.nmsThreshold), TOP_K(config.topK),
       SEG_CHANNELS(config.segChannels), SEG_H(config.segH), SEG_W(config.segW), SEGMENTATION_THRESHOLD(config.segmentationThreshold),
       CLASS_NAMES(config.classNames), NUM_KPS(config.numKPS), KPS_THRESHOLD(config.kpsThreshold) {
@@ -32,8 +32,22 @@ YoloV8::YoloV8(const std::string &onnxModelPath, const YoloV8Config &config)
         throw std::runtime_error("Error: Must supply calibration data path for legacy INT8 calibration");
     }
 
-    // Build the ONNX into a TensorRT engine (or load a fresh cached one) and deserialize it.
-    auto engine = trtcpp::EngineBuilder{}.buildAndLoad(onnxModelPath, options);
+    // Obtain a ready-to-run v7 Engine, either by building the ONNX into a TensorRT engine (caching
+    // it next to the working dir, rebuilding only when stale) or by loading a prebuilt .trt/.engine
+    // file directly. Preprocessing (BGR->RGB, letterbox, 1/255 scale) is fused on the GPU in
+    // preprocess(), so the v6 SUB_VALS/DIV_VALS/NORMALIZE are no longer passed at build/load time.
+    auto loadEngine = [&]() -> trtcpp::Result<trtcpp::Engine> {
+        if (!onnxModelPath.empty()) {
+            // Build the ONNX model into a TensorRT engine (or load a fresh cached one) and deserialize it.
+            return trtcpp::EngineBuilder{}.buildAndLoad(onnxModelPath, options);
+        }
+        if (!trtModelPath.empty()) {
+            // No ONNX model: deserialize a prebuilt TensorRT engine file directly.
+            return trtcpp::Engine::loadFromFile(trtModelPath);
+        }
+        return trtcpp::Status{trtcpp::StatusCode::kInvalidArgument, "Neither ONNX model nor TensorRT engine path provided."};
+    };
+    auto engine = loadEngine();
     if (!engine) {
         throw std::runtime_error("Error: Unable to build or load the TensorRT engine: " + engine.status().message());
     }
@@ -128,15 +142,20 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
     // 3D->1D/2D flattening is no longer needed.
     std::vector<Object> ret;
     if (m_outputShapes.size() == 1) {
-        // Object detection or pose estimation. Output shape is [1, C, anchors]; pose models have
-        // C == 56 (4 box + 1 score + 17*3 keypoints).
-        // TODO: improve this to be more generic (don't use the magic number); works with
-        // Ultralytics pretrained models.
-        const int numChannels = static_cast<int>(m_outputShapes[0][1]);
-        if (numChannels == 56) {
+        // Object detection or pose estimation. Output shape is [1, C, anchors]; the channel count C
+        // distinguishes the two: pose adds NUM_KPS*3 keypoint values on top of (4 box + classes),
+        // while plain detection is just (4 box + classes). No magic number; works with Ultralytics
+        // pretrained models.
+        const size_t numChannels = static_cast<size_t>(m_outputShapes[0][1]);
+        if (numChannels == 4 + CLASS_NAMES.size() + NUM_KPS * 3) {
+            // Pose estimation
             ret = postprocessPose(featureVectors[0]);
-        } else {
+        } else if (numChannels == 4 + CLASS_NAMES.size()) {
+            // Object detection
             ret = postprocessDetect(featureVectors[0]);
+        }
+        else {
+            throw std::runtime_error("Error: Unable to identify whether the model is for Pose estimation or Object detection.");
         }
     } else {
         // Instance segmentation (detections + mask prototypes).

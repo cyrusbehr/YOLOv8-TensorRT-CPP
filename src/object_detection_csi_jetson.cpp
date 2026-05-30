@@ -1,7 +1,6 @@
 #include "cmd_line_util.h"
 #include "yolov8.h"
-#include <opencv2/highgui.hpp> // imshow/waitKey (was pulled in transitively by the v6 engine.h)
-#include <opencv2/videoio.hpp> // VideoCapture / CAP_PROP_*
+#include <opencv2/cudaimgproc.hpp>
 
 // Runs object detection on video stream then displays annotated results.
 int main(int argc, char *argv[]) {
@@ -18,28 +17,22 @@ int main(int argc, char *argv[]) {
     // Create the YoloV8 engine
     YoloV8 yoloV8(onnxModelPath, trtModelPath, config);
 
-    // Initialize the video stream
-    cv::VideoCapture cap;
+    // Define GStreamer pipeline for the CSI camera
+    std::string gst_pipeline = 
+        "nvarguscamerasrc ! video/x-raw(memory:NVMM), "
+        "width=1280, height=720, framerate=30/1 ! nvvidconv ! "
+        "video/x-raw, format=(string)BGRx ! videoconvert ! "
+        "video/x-raw, format=(string)BGR ! appsink drop=true sync=false";
 
-    // Open video capture
-    try {
-        cap.open(std::stoi(inputVideo));
-    } catch (const std::exception &e) {
-        cap.open(inputVideo);
+    // Open the CSI camera
+    cv::VideoCapture cap(gst_pipeline, cv::CAP_GSTREAMER);
+
+    if (!cap.isOpened()) {
+        std::cerr << "Error: Cannot open CSI camera" << std::endl;
+        return -1;
     }
 
-    // Try to use HD resolution (or closest resolution)
-    auto resW = cap.get(cv::CAP_PROP_FRAME_WIDTH);
-    auto resH = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
-    std::cout << "Original video resolution: (" << resW << "x" << resH << ")" << std::endl;
-    cap.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
-    cap.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
-    resW = cap.get(cv::CAP_PROP_FRAME_WIDTH);
-    resH = cap.get(cv::CAP_PROP_FRAME_HEIGHT);
-    std::cout << "New video resolution: (" << resW << "x" << resH << ")" << std::endl;
-
-    if (!cap.isOpened())
-        throw std::runtime_error("Unable to open video capture with input '" + inputVideo + "'");
+    std::cout << "CSI Camera opened successfully!" << std::endl;
 
     while (true) {
         // Grab frame
