@@ -191,11 +191,14 @@ inline bool parseArguments(int argc, char *argv[], YoloV8Config &config, std::st
                     return false;
 
                 if (nextArgument == "FP32") {
-                    config.precision = Precision::FP32;
+                    config.precision = trtcpp::Precision::kFp32;
                 } else if (nextArgument == "FP16") {
-                    config.precision = Precision::FP16;
+                    config.precision = trtcpp::Precision::kFp16;
                 } else if (nextArgument == "INT8") {
-                    config.precision = Precision::INT8;
+                    // v7: kInt8Qdq is the forward-compatible explicit-QDQ path. For v6-style
+                    // calibration-directory PTQ, use kInt8CalibLegacy + an ICalibrator (only when
+                    // the library is built against TensorRT < 11).
+                    config.precision = trtcpp::Precision::kInt8Qdq;
                 } else {
                     std::cout << "Error: Unexpected precision value: " << nextArgument << ", options are FP32, FP16, INT8" << std::endl;
                     return false;
@@ -379,11 +382,14 @@ inline bool parseArgumentsVideo(int argc, char *argv[], YoloV8Config &config, st
                     return false;
 
                 if (nextArgument == "FP32") {
-                    config.precision = Precision::FP32;
+                    config.precision = trtcpp::Precision::kFp32;
                 } else if (nextArgument == "FP16") {
-                    config.precision = Precision::FP16;
+                    config.precision = trtcpp::Precision::kFp16;
                 } else if (nextArgument == "INT8") {
-                    config.precision = Precision::INT8;
+                    // v7: kInt8Qdq is the forward-compatible explicit-QDQ path. For v6-style
+                    // calibration-directory PTQ, use kInt8CalibLegacy + an ICalibrator (only when
+                    // the library is built against TensorRT < 11).
+                    config.precision = trtcpp::Precision::kInt8Qdq;
                 } else {
                     std::cout << "Error: Unexpected precision value: " << nextArgument << ", options are FP32, FP16, INT8" << std::endl;
                     return false;

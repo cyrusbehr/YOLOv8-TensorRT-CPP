@@ -1,77 +1,102 @@
 #include "yolov8.h"
-#include <opencv2/cudaimgproc.hpp>
+#include "stopwatch.h"
+#include <iostream> // std::cout in the ENABLE_BENCHMARKS timing (was transitive via the v6 engine.h)
+#include <stdexcept>
+
+namespace {
+// Unwrap a v7 Result, throwing on error (this app uses exceptions). Calling .value() directly
+// would assert in debug builds and be undefined behavior in -DNDEBUG release builds when the
+// Result holds an error (e.g. a dynamic/oversized shape, OOM, or a non-float output dtype).
+template <class T> T must(trtcpp::Result<T> r, const char *what) {
+    if (!r) {
+        throw std::runtime_error(std::string("Error: ") + what + ": " + r.status().message());
+    }
+    return std::move(r).value();
+}
+} // namespace
 
 YoloV8::YoloV8(const std::string &onnxModelPath, const std::string &trtModelPath, const YoloV8Config &config)
     : PROBABILITY_THRESHOLD(config.probabilityThreshold), NMS_THRESHOLD(config.nmsThreshold), TOP_K(config.topK),
       SEG_CHANNELS(config.segChannels), SEG_H(config.segH), SEG_W(config.segW), SEGMENTATION_THRESHOLD(config.segmentationThreshold),
       CLASS_NAMES(config.classNames), NUM_KPS(config.numKPS), KPS_THRESHOLD(config.kpsThreshold) {
-    // Specify options for GPU inference
-    Options options;
-    options.optBatchSize = 1;
-    options.maxBatchSize = 1;
-
+    // Specify build options for the v7 engine builder. (Batch knobs are now expressed as
+    // optimization profiles; this detector uses the model's static 1x3xHxW input.)
+    trtcpp::BuildOptions options;
     options.precision = config.precision;
-    options.calibrationDataDirectoryPath = config.calibrationDataDirectory;
+    options.engineCacheDir = "."; // build-or-load caches next to the working dir; v7 detects staleness
 
-    if (options.precision == Precision::INT8) {
-        if (options.calibrationDataDirectoryPath.empty()) {
-            throw std::runtime_error("Error: Must supply calibration data path for INT8 calibration");
-        }
+    // v7 INT8: prefer an explicit-QDQ ONNX with Precision::kInt8Qdq (no calibration data). Legacy
+    // calibrator PTQ (kInt8CalibLegacy) is only available when the library is built against
+    // TensorRT < 11 and is wired via BuildOptions.calibrator (see tensorrt_cpp_api/calibrator.h).
+    if (options.precision == trtcpp::Precision::kInt8CalibLegacy && config.calibrationDataDirectory.empty()) {
+        throw std::runtime_error("Error: Must supply calibration data path for legacy INT8 calibration");
     }
 
-    // Create our TensorRT inference engine
-    m_trtEngine = std::make_unique<Engine<float>>(options);
-
-    // Build the onnx model into a TensorRT engine file, cache the file to disk, and then load the TensorRT engine file into memory.
-    // If the engine file already exists on disk, this function will not rebuild but only load into memory.
-    // The engine file is rebuilt any time the above Options are changed.
-    if (!onnxModelPath.empty()) {
-        // Build the ONNX model into a TensorRT engine file
-        auto succ = m_trtEngine->buildLoadNetwork(onnxModelPath, SUB_VALS, DIV_VALS, NORMALIZE);
-        if (!succ) {
-            const std::string errMsg = "Error: Unable to build or load the TensorRT engine from ONNX model. "
-                                       "Try increasing TensorRT log severity to kVERBOSE (in /libs/tensorrt-cpp-api/engine.cpp).";
-            throw std::runtime_error(errMsg);
+    // Obtain a ready-to-run v7 Engine, either by building the ONNX into a TensorRT engine (caching
+    // it next to the working dir, rebuilding only when stale) or by loading a prebuilt .trt/.engine
+    // file directly. Preprocessing (BGR->RGB, letterbox, 1/255 scale) is fused on the GPU in
+    // preprocess(), so the v6 SUB_VALS/DIV_VALS/NORMALIZE are no longer passed at build/load time.
+    auto loadEngine = [&]() -> trtcpp::Result<trtcpp::Engine> {
+        if (!onnxModelPath.empty()) {
+            // Build the ONNX model into a TensorRT engine (or load a fresh cached one) and deserialize it.
+            return trtcpp::EngineBuilder{}.buildAndLoad(onnxModelPath, options);
         }
-    } else if (!trtModelPath.empty()) { // If no ONNX model, check for TRT model
-        // Load the TensorRT engine file directly
-        bool succ = m_trtEngine->loadNetwork(trtModelPath, SUB_VALS, DIV_VALS, NORMALIZE);
-        if (!succ) {
-            throw std::runtime_error("Error: Unable to load TensorRT engine from " + trtModelPath);
+        if (!trtModelPath.empty()) {
+            // No ONNX model: deserialize a prebuilt TensorRT engine file directly.
+            return trtcpp::Engine::loadFromFile(trtModelPath);
         }
-    } else {
-        throw std::runtime_error("Error: Neither ONNX model nor TensorRT engine path provided.");
+        return trtcpp::Status{trtcpp::StatusCode::kInvalidArgument, "Neither ONNX model nor TensorRT engine path provided."};
+    };
+    auto engine = loadEngine();
+    if (!engine) {
+        throw std::runtime_error("Error: Unable to build or load the TensorRT engine: " + engine.status().message());
     }
+    m_engine = std::make_unique<trtcpp::Engine>(std::move(engine).value());
+
+    // Cache IO metadata once (v7 is name-keyed and non-templated).
+    m_inputName = m_engine->inputNames().front();
+    m_outputNames = m_engine->outputNames();
+    m_inputShape = must(m_engine->tensorShape(m_inputName), "query input shape"); // [1,3,H,W]
+    for (const auto &name : m_outputNames) {
+        m_outputShapes.push_back(must(m_engine->tensorShape(name), "query output shape"));
+    }
+
+    // Pre-allocate the NCHW float input tensor. allocate() errors (and we throw) on a dynamic
+    // input shape or a CUDA OOM rather than crashing on an unchecked .value().
+    m_input = must(trtcpp::Tensor::allocate(trtcpp::DType::kFloat32, m_inputShape, trtcpp::Device::kCuda), "allocate input tensor");
 }
 
-std::vector<std::vector<cv::cuda::GpuMat>> YoloV8::preprocess(const cv::cuda::GpuMat &gpuImg) {
-    // Populate the input vectors
-    const auto &inputDims = m_trtEngine->getInputDims();
+void YoloV8::preprocess(const cv::cuda::GpuMat &gpuImg) {
+    // Record original dims + the letterbox ratio used by post-processing to map boxes back to the
+    // source image. inputShape is [1, 3, H, W].
+    m_imgHeight = static_cast<float>(gpuImg.rows);
+    m_imgWidth = static_cast<float>(gpuImg.cols);
+    const int inH = static_cast<int>(m_inputShape[2]);
+    const int inW = static_cast<int>(m_inputShape[3]);
+    m_ratio = 1.f / std::min(inW / m_imgWidth, inH / m_imgHeight);
 
-    // Convert the image from BGR to RGB
-    cv::cuda::GpuMat rgbMat;
-    cv::cuda::cvtColor(gpuImg, rgbMat, cv::COLOR_BGR2RGB);
+    // One fused GPU kernel replaces the v6 cvtColor + resizeKeepAspectRatioPadRightBottom and the
+    // in-engine HWC->NCHW + normalize: BGR->RGB, letterbox-resize (pad right/bottom), scale by
+    // 1/255 (SUB_VALS=0, DIV_VALS=1, NORMALIZE), and write the NCHW float input tensor in place.
+    trtcpp::preproc::PreprocSpec spec;
+    spec.swapRB = true;             // OpenCV GpuMat is BGR; the model expects RGB
+    spec.keepAspectRatioPad = true; // letterbox, pad right/bottom (matches v6)
+    spec.scale = {1.f / 255.f, 1.f / 255.f, 1.f / 255.f, 1.f};
 
-    auto resized = rgbMat;
-
-    // Resize to the model expected input size while maintaining the aspect ratio with the use of padding
-    if (resized.rows != inputDims[0].d[1] || resized.cols != inputDims[0].d[2]) {
-        // Only resize if not already the right size to avoid unecessary copy
-        resized = Engine<float>::resizeKeepAspectRatioPadRightBottom(rgbMat, inputDims[0].d[1], inputDims[0].d[2]);
+    // cv::cuda::GpuMat rows are typically pitched (padded for alignment) and a TensorView is
+    // contiguous, so make a continuous copy when the upload isn't already continuous.
+    cv::cuda::GpuMat continuous = gpuImg;
+    if (!gpuImg.isContinuous()) {
+        cv::cuda::createContinuous(gpuImg.rows, gpuImg.cols, gpuImg.type(), continuous);
+        gpuImg.copyTo(continuous);
     }
-
-    // Convert to format expected by our inference engine
-    // The reason for the strange format is because it supports models with multiple inputs as well as batching
-    // In our case though, the model only has a single input and we are using a batch size of 1.
-    std::vector<cv::cuda::GpuMat> input{std::move(resized)};
-    std::vector<std::vector<cv::cuda::GpuMat>> inputs{std::move(input)};
-
-    // These params will be used in the post-processing stage
-    m_imgHeight = rgbMat.rows;
-    m_imgWidth = rgbMat.cols;
-    m_ratio = 1.f / std::min(inputDims[0].d[2] / static_cast<float>(rgbMat.cols), inputDims[0].d[1] / static_cast<float>(rgbMat.rows));
-
-    return inputs;
+    auto src = trtcpp::opencv::viewOf(continuous); // zero-copy HWC-uint8 device view
+    if (!src) {
+        throw std::runtime_error("Error: could not view the input GpuMat: " + src.status().message());
+    }
+    if (auto s = trtcpp::preproc::letterboxToTensor(src.value(), m_input.view(), spec, m_stream); !s) {
+        throw std::runtime_error("Error: preprocessing failed: " + s.message());
+    }
 }
 
 std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR) {
@@ -80,7 +105,7 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
     static int numIts = 1;
     preciseStopwatch s1;
 #endif
-    const auto input = preprocess(inputImageBGR);
+    preprocess(inputImageBGR); // fills m_input
 #ifdef ENABLE_BENCHMARKS
     static long long t1 = 0;
     t1 += s1.elapsedTime<long long, std::chrono::microseconds>();
@@ -90,10 +115,21 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
 #ifdef ENABLE_BENCHMARKS
     preciseStopwatch s2;
 #endif
-    std::vector<std::vector<std::vector<float>>> featureVectors;
-    auto succ = m_trtEngine->runInference(input, featureVectors);
-    if (!succ) {
-        throw std::runtime_error("Error: Unable to run inference.");
+    auto outputs = m_engine->infer({{m_inputName, m_input.view()}}, m_stream);
+    if (!outputs) {
+        throw std::runtime_error("Error: Unable to run inference: " + outputs.status().message());
+    }
+    // Read each output back to a flat host float vector, in output-binding order. (v7 returns
+    // name-keyed owning Tensors; toHost performs the D2H copy AND synchronizes the stream.)
+    std::vector<std::vector<float>> featureVectors;
+    featureVectors.reserve(m_outputNames.size());
+    for (const auto &name : m_outputNames) {
+        auto host = outputs->at(name).toHost(m_stream);
+        if (!host) {
+            throw std::runtime_error("Error: output readback failed: " + host.status().message());
+        }
+        const auto span = must(host->as<float>(), "output tensor is not float32 (rebuild the engine with a float output)");
+        featureVectors.emplace_back(span.begin(), span.end());
     }
 #ifdef ENABLE_BENCHMARKS
     static long long t2 = 0;
@@ -102,32 +138,28 @@ std::vector<Object> YoloV8::detectObjects(const cv::cuda::GpuMat &inputImageBGR)
     preciseStopwatch s3;
 #endif
     // Check if our model does only object detection or also supports segmentation
+    // v7 already gives one flat host vector per output (batch size 1), so the v6 transformOutput
+    // 3D->1D/2D flattening is no longer needed.
     std::vector<Object> ret;
-    const auto &numOutputs = m_trtEngine->getOutputDims().size();
-    if (numOutputs == 1) {
-        // Object detection or pose estimation
-        // Since we have a batch size of 1 and only 1 output, we must convert the output from a 3D array to a 1D array.
-        std::vector<float> featureVector;
-        Engine<float>::transformOutput(featureVectors, featureVector);
-
-        const auto &outputDims = m_trtEngine->getOutputDims();
-        size_t numChannels = outputDims[outputDims.size() - 1].d[1];
+    if (m_outputShapes.size() == 1) {
+        // Object detection or pose estimation. Output shape is [1, C, anchors]; the channel count C
+        // distinguishes the two: pose adds NUM_KPS*3 keypoint values on top of (4 box + classes),
+        // while plain detection is just (4 box + classes). No magic number; works with Ultralytics
+        // pretrained models.
+        const size_t numChannels = static_cast<size_t>(m_outputShapes[0][1]);
         if (numChannels == 4 + CLASS_NAMES.size() + NUM_KPS * 3) {
             // Pose estimation
-            ret = postprocessPose(featureVector);
-        } else if (numChannels == 4 + CLASS_NAMES.size()){
+            ret = postprocessPose(featureVectors[0]);
+        } else if (numChannels == 4 + CLASS_NAMES.size()) {
             // Object detection
-            ret = postprocessDetect(featureVector);
+            ret = postprocessDetect(featureVectors[0]);
         }
         else {
             throw std::runtime_error("Error: Unable to identify whether the model is for Pose estimation or Object detection.");
         }
     } else {
-        // Segmentation
-        // Since we have a batch size of 1 and 2 outputs, we must convert the output from a 3D array to a 2D array.
-        std::vector<std::vector<float>> featureVector;
-        Engine<float>::transformOutput(featureVectors, featureVector);
-        ret = postProcessSegmentation(featureVector);
+        // Instance segmentation (detections + mask prototypes).
+        ret = postProcessSegmentation(featureVectors);
     }
 #ifdef ENABLE_BENCHMARKS
     static long long t3 = 0;
@@ -147,10 +179,8 @@ std::vector<Object> YoloV8::detectObjects(const cv::Mat &inputImageBGR) {
 }
 
 std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<float>> &featureVectors) {
-    const auto &outputDims = m_trtEngine->getOutputDims();
-
-    int numChannels = outputDims[0].d[1];
-    int numAnchors = outputDims[0].d[2];
+    int numChannels = static_cast<int>(m_outputShapes[0][1]);
+    int numAnchors = static_cast<int>(m_outputShapes[0][2]);
 
     const auto numClasses = numChannels - SEG_CHANNELS - 4;
 
@@ -237,7 +267,6 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
 
         std::vector<cv::Mat> maskChannels;
         cv::split(maskMat, maskChannels);
-        const auto inputDims = m_trtEngine->getInputDims();
 
         cv::Rect roi;
         if (m_imgHeight > m_imgWidth) {
@@ -260,9 +289,8 @@ std::vector<Object> YoloV8::postProcessSegmentation(std::vector<std::vector<floa
 }
 
 std::vector<Object> YoloV8::postprocessPose(std::vector<float> &featureVector) {
-    const auto &outputDims = m_trtEngine->getOutputDims();
-    auto numChannels = outputDims[0].d[1];
-    auto numAnchors = outputDims[0].d[2];
+    const auto numChannels = static_cast<int>(m_outputShapes[0][1]);
+    const auto numAnchors = static_cast<int>(m_outputShapes[0][2]);
 
     std::vector<cv::Rect> bboxes;
     std::vector<float> scores;
@@ -342,9 +370,8 @@ std::vector<Object> YoloV8::postprocessPose(std::vector<float> &featureVector) {
 }
 
 std::vector<Object> YoloV8::postprocessDetect(std::vector<float> &featureVector) {
-    const auto &outputDims = m_trtEngine->getOutputDims();
-    auto numChannels = outputDims[0].d[1];
-    auto numAnchors = outputDims[0].d[2];
+    const auto numChannels = static_cast<int>(m_outputShapes[0][1]);
+    const auto numAnchors = static_cast<int>(m_outputShapes[0][2]);
 
     auto numClasses = CLASS_NAMES.size();
 

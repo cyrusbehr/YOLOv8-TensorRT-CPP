@@ -1,6 +1,10 @@
 #include "cmd_line_util.h"
 #include "yolov8.h"
-#include <opencv2/cudaimgproc.hpp>
+// Under tensorrt_cpp_api v7 the public headers pull in no OpenCV, so the modules this tool needs
+// (VideoCapture from videoio, imshow/waitKey from highgui) must be included explicitly rather than
+// transitively via the old v6 "engine.h".
+#include <opencv2/highgui.hpp>
+#include <opencv2/videoio.hpp>
 
 // Runs object detection on video stream then displays annotated results.
 int main(int argc, char *argv[]) {
