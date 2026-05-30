@@ -7,9 +7,12 @@ PImpl headers with no OpenCV/TensorRT leakage). See the library's `docs/upgradin
 ## Verification status
 
 Built and run on an RTX 3080 Laptop GPU against a CUDA-12.6 OpenCV-CUDA build and the v7 library:
-`detect_object_image` on `images/team.jpg` (FP16 YOLOv8n) detects 9 objects and writes the
-annotated image. The library, `opencv_interop`, the preproc sublib, and the YoloV8 code all compile
-and link.
+`detect_object_image` on `images/team.jpg` (FP16 YOLOv8n) runs end-to-end and detects the people in
+the frame and writes the annotated image (~10 objects; the exact count shifts by one or two across
+FP16 engine rebuilds, as TensorRT's tactic selection moves borderline detections across the
+confidence threshold). The library, `opencv_interop`, the preproc sublib, and the YoloV8 detection
+code compile and run. The video/CSI demo targets additionally need an OpenCV built with
+`highgui`/`videoio`.
 
 ## Required after pulling: init the submodule
 
