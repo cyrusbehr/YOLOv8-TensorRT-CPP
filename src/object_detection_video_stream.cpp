@@ -1,6 +1,5 @@
 #include "cmd_line_util.h"
 #include "yolov8.h"
-#include <opencv2/cudaimgproc.hpp>
 #include <opencv2/highgui.hpp> // imshow/waitKey (was pulled in transitively by the v6 engine.h)
 #include <opencv2/videoio.hpp> // VideoCapture / CAP_PROP_*
 

@@ -1,7 +1,6 @@
 #include "yolov8.h"
 #include "stopwatch.h"
 #include <iostream> // std::cout in the ENABLE_BENCHMARKS timing (was transitive via the v6 engine.h)
-#include <opencv2/cudaimgproc.hpp>
 #include <stdexcept>
 
 namespace {
@@ -70,9 +69,16 @@ void YoloV8::preprocess(const cv::cuda::GpuMat &gpuImg) {
     spec.keepAspectRatioPad = true; // letterbox, pad right/bottom (matches v6)
     spec.scale = {1.f / 255.f, 1.f / 255.f, 1.f / 255.f, 1.f};
 
-    auto src = trtcpp::opencv::viewOf(gpuImg); // zero-copy HWC-uint8 device view (continuous GpuMat)
+    // cv::cuda::GpuMat rows are typically pitched (padded for alignment) and a TensorView is
+    // contiguous, so make a continuous copy when the upload isn't already continuous.
+    cv::cuda::GpuMat continuous = gpuImg;
+    if (!gpuImg.isContinuous()) {
+        cv::cuda::createContinuous(gpuImg.rows, gpuImg.cols, gpuImg.type(), continuous);
+        gpuImg.copyTo(continuous);
+    }
+    auto src = trtcpp::opencv::viewOf(continuous); // zero-copy HWC-uint8 device view
     if (!src) {
-        throw std::runtime_error("Error: could not view the input GpuMat (clone() a padded mat first): " + src.status().message());
+        throw std::runtime_error("Error: could not view the input GpuMat: " + src.status().message());
     }
     if (auto s = trtcpp::preproc::letterboxToTensor(src.value(), m_input.view(), spec, m_stream); !s) {
         throw std::runtime_error("Error: preprocessing failed: " + s.message());

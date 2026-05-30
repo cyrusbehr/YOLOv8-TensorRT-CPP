@@ -4,23 +4,19 @@ This branch (`v7-migration`) ports YOLOv8-TensorRT-CPP from the v6 `tensorrt-cpp
 which is a clean break (new namespace `trtcpp`, no-throw `Status`/`Result`, name-keyed tensors,
 PImpl headers with no OpenCV/TensorRT leakage). See the library's `docs/upgrading_from_v6.md`.
 
-## ⚠️ Verification status
+## Verification status
 
-The code has been **syntax-checked against the real v7 public headers + OpenCV headers**
-(`g++ -std=c++20 -fsyntax-only` over every translation unit — clean). It has **not been compiled,
-linked, or run**, because the machine this migration was prepared on has a broken OpenCV-CUDA
-install (the exact environment fragility v7 is designed to avoid). **Build and run on a host with a
-working OpenCV-CUDA before merging.**
+Built and run on an RTX 3080 Laptop GPU against a CUDA-12.6 OpenCV-CUDA build and the v7 library:
+`detect_object_image` on `images/team.jpg` (FP16 YOLOv8n) detects 9 objects and writes the
+annotated image. The library, `opencv_interop`, the preproc sublib, and the YoloV8 code all compile
+and link.
 
-## Required: bump the submodule to v7
+## Required after pulling: init the submodule
 
-`libs/tensorrt-cpp-api` is a git submodule. It must point at **tensorrt_cpp_api v7.0.0+**:
+`libs/tensorrt-cpp-api` is a git submodule pinned to a v7 release; populate it before building:
 
 ```sh
-cd libs/tensorrt-cpp-api
-git fetch origin
-git checkout <v7.0.0 tag or commit>
-cd ../.. && git add libs/tensorrt-cpp-api
+git submodule update --init
 ```
 
 ## What changed
